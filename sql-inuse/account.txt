@@ -1,0 +1,4 @@
+INSERT INTO login (username, password, role)
+VALUES
+('admin', 'admin123', 'Administrator'),
+('treasury', 'treasury123', 'Treasury');
