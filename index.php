@@ -17,7 +17,7 @@
 <div class="login-container">
 
     <div class="logo">
-        <img src="./assets/marketlogo-bg.png" alt="">
+        <img src="./assets/meedo-logo.png" alt="">
     </div>
 
     <h2>Odiongan Public Market MEEDO</h2>
