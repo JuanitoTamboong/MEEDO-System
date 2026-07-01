@@ -1,5 +1,4 @@
 <?php
-
 $conn = mysqli_connect(
     "localhost",
     "root",
@@ -10,4 +9,34 @@ $conn = mysqli_connect(
 if (!$conn) {
     die("Connection Failed: " . mysqli_connect_error());
 }
+
+$conn->set_charset("utf8mb4");
+
+$createSectionsTable = "
+    CREATE TABLE IF NOT EXISTS sections (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        section_name VARCHAR(100) NOT NULL,
+        icon_class VARCHAR(50) DEFAULT 'Store',
+        display_order INT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+";
+
+$createStallsTable = "
+    CREATE TABLE IF NOT EXISTS stalls (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        stall_number VARCHAR(20) NOT NULL UNIQUE,
+        section_id INT NULL,
+        tenant_name VARCHAR(100) NULL,
+        status ENUM('Occupied', 'Vacant') DEFAULT 'Vacant',
+        monthly_rent DECIMAL(10,2) DEFAULT 0.00,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (section_id) REFERENCES sections(id) ON DELETE CASCADE,
+        INDEX idx_status (status),
+        INDEX idx_section (section_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+";
+
+mysqli_query($conn, $createSectionsTable) or die("Failed to create sections table: " . mysqli_error($conn));
+mysqli_query($conn, $createStallsTable) or die("Failed to create stalls table: " . mysqli_error($conn));
 ?>
