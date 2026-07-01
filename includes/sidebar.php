@@ -55,7 +55,10 @@
 
             <h4>Market Administrator</h4>
 
-            <span>10:20 AM</span>
+            <span><?php
+                date_default_timezone_set("Asia/Manila");
+                echo date("h:i A");
+            ?></span>
 
         </div>
 
