@@ -1,0 +1,214 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Poppins,sans-serif;
+}
+
+body{
+
+    background:url("../assets/meedo-login-bg.jpg") center center/cover no-repeat;
+    height:100vh;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    position:relative;
+
+}
+
+.overlay{
+
+    position:absolute;
+    width:100%;
+    height:100%;
+
+    background:rgba(0,0,0,.45);
+
+}
+
+.login-container{
+
+    width:480px;
+
+    background:white;
+
+    border-radius:12px;
+
+    padding:70px 45px 40px;
+
+    position:relative;
+
+    z-index:2;
+
+    box-shadow:
+    0 20px 50px rgba(0,0,0,.25);
+
+}
+
+.logo{
+
+    position:absolute;
+
+    top:-58px;
+    left:50%;
+
+    transform:translateX(-50%);
+}
+
+.logo img{
+
+    width:115px;
+    height:115px;
+
+    border-radius:50%;
+    border:6px solid white;
+
+    background:white;
+
+    object-fit:cover;
+
+}
+
+.login-container h2{
+
+    text-align:center;
+
+    color:#1e2c4f;
+
+    font-size:27px;
+
+    font-weight:700;
+
+    margin-top:5px;
+}
+
+.login-container p{
+
+    text-align:center;
+
+    color:#777;
+
+    margin-top:5px;
+    margin-bottom:30px;
+
+}
+
+.role{
+
+    display:flex;
+    justify-content:flex-end;
+
+    margin-bottom:30px;
+}
+
+.role select{
+
+    width:165px;
+
+    height:42px;
+
+    border:none;
+
+    background:#3b82f6;
+
+    color:white;
+
+    border-radius:5px;
+
+    padding-left:15px;
+
+    cursor:pointer;
+
+}
+
+label{
+
+    display:block;
+
+    margin-bottom:8px;
+
+    font-weight:600;
+
+    color:#222;
+
+}
+
+.input-box{
+
+    display:flex;
+    align-items:center;
+
+    height:58px;
+
+    border:2px solid #4d8dff;
+
+    border-radius:6px;
+
+    margin-bottom:20px;
+
+}
+
+.input-box i{
+
+    width:55px;
+
+    text-align:center;
+
+    color:#4d8dff;
+
+    font-size:20px;
+
+}
+
+.input-box input{
+
+    border:none;
+    outline:none;
+
+    flex:1;
+
+    font-size:16px;
+
+}
+
+button{
+
+    width:100%;
+    height:50px;
+
+    border:none;
+
+    background:#0d5cc7;
+
+    color:white;
+
+    border-radius:5px;
+
+    cursor:pointer;
+
+    font-size:17px;
+
+    margin-top:10px;
+
+    transition:.3s;
+
+}
+
+button:hover{
+
+    background:#084da8;
+
+}
+
+@media(max-width:600px){
+
+.login-container{
+
+    width:92%;
+    padding:70px 25px 30px;
+
+}
+
+}
