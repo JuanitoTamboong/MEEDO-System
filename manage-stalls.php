@@ -88,6 +88,7 @@ if (isset($_GET['delete_stall'])) {
     <title>Manage Stalls - MEEDO</title>
     <link rel="stylesheet" href="css/homepage.css">
     <link rel="stylesheet" href="css/manage-stalls.css">
+    <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
