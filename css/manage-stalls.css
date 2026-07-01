@@ -10,7 +10,6 @@ html, body {
     overflow-x: hidden;
 }
 
-/* Main Layout Fix */
 .main-content {
     flex: 1;
     padding: 20px 30px;
@@ -21,7 +20,6 @@ html, body {
     max-width: 100%;
 }
 
-/* Content Wrapper */
 .content-wrapper {
     max-width: 1400px;
     margin: 0 auto;
@@ -29,7 +27,6 @@ html, body {
     padding-bottom: 40px;
 }
 
-/* Fix for overflowing elements */
 .add-section-container,
 .add-stall-container,
 .stalls-container {
@@ -38,7 +35,6 @@ html, body {
     overflow: hidden;
 }
 
-/* Header */
 .header {
     display: flex;
     justify-content: space-between;
@@ -98,7 +94,6 @@ html, body {
     background: transparent;
 }
 
-/* Stats Cards */
 .stats-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -156,7 +151,6 @@ html, body {
     margin-top: 2px;
 }
 
-/* Add Section Container */
 .add-section-container {
     background: white;
     border-radius: 12px;
@@ -292,6 +286,13 @@ html, body {
     box-shadow: none !important;
 }
 
+.icon-input .help-text {
+    display: block;
+    font-size: 11px;
+    color: #7a8a9e;
+    margin-top: 4px;
+}
+
 .btn-add {
     background: #2d6a9f;
     color: white;
@@ -338,7 +339,6 @@ html, body {
     background: #218838;
 }
 
-/* Alerts */
 .alert {
     padding: 12px 15px;
     border-radius: 8px;
@@ -363,7 +363,6 @@ html, body {
     margin-right: 8px;
 }
 
-/* Add Stall Container */
 .add-stall-container {
     background: #f8f9fa;
     border: 2px dashed #2d6a9f;
@@ -403,7 +402,6 @@ html, body {
     margin-right: 4px;
 }
 
-/* Stalls Container */
 .stalls-container {
     background: white;
     border-radius: 12px;
@@ -415,6 +413,11 @@ html, body {
 
 .stalls-header {
     margin-bottom: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .stalls-header h2 {
@@ -428,7 +431,16 @@ html, body {
     margin-right: 10px;
 }
 
-/* Stall Section */
+.stalls-header .order-info {
+    color: #7a8a9e;
+    font-size: 13px;
+}
+
+.stalls-header .order-info i {
+    color: #2d6a9f;
+    margin-right: 4px;
+}
+
 .stall-section {
     margin-top: 30px;
     border-top: 1px solid #e1e5ea;
@@ -490,6 +502,11 @@ html, body {
     color: #e65100;
 }
 
+.badge.order {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
 .section-actions {
     display: flex;
     gap: 8px;
@@ -520,7 +537,14 @@ html, body {
     color: #c62828;
 }
 
-/* Stalls Grid */
+.btn-icon:hover .fa-arrow-up {
+    color: #2e7d32;
+}
+
+.btn-icon:hover .fa-arrow-down {
+    color: #e65100;
+}
+
 .stalls-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -565,7 +589,6 @@ html, body {
     margin-bottom: 8px;
 }
 
-/* Stall Status Badge */
 .stall-status {
     display: inline-block;
     padding: 4px 12px;
@@ -622,7 +645,6 @@ html, body {
     margin-right: 4px;
 }
 
-/* Stall Actions */
 .stall-actions {
     display: flex;
     gap: 6px;
@@ -651,7 +673,6 @@ html, body {
     background: #b71c1c;
 }
 
-/* No data states */
 .no-sections {
     text-align: center;
     padding: 60px 20px;
@@ -677,7 +698,6 @@ html, body {
     font-size: 14px;
 }
 
-/* Responsive */
 @media (max-width: 1200px) {
     .stalls-grid {
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -761,6 +781,11 @@ html, body {
     .btn-export {
         width: 100%;
         justify-content: center;
+    }
+    
+    .stalls-header {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }
 

@@ -1,22 +1,13 @@
--- ======================================================
--- MEEDO - Stall & Rental Monitoring System
--- Database Tables for Manage Stalls
--- ======================================================
-
--- Drop tables if they exist (use with caution - will delete data!)
--- DROP TABLE IF EXISTS stalls;
--- DROP TABLE IF EXISTS sections;
-
--- 1. Create Sections Table
+-- 1. Sections
 CREATE TABLE IF NOT EXISTS sections (
     id INT PRIMARY KEY AUTO_INCREMENT,
     section_name VARCHAR(100) NOT NULL,
     icon_class VARCHAR(50) DEFAULT 'Store',
     display_order INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
--- 2. Create Stalls Table (Only Occupied and Vacant - No Maintenance)
+-- 2. Stalls
 CREATE TABLE IF NOT EXISTS stalls (
     id INT PRIMARY KEY AUTO_INCREMENT,
     stall_number VARCHAR(20) NOT NULL UNIQUE,
@@ -28,5 +19,32 @@ CREATE TABLE IF NOT EXISTS stalls (
     FOREIGN KEY (section_id) REFERENCES sections(id) ON DELETE CASCADE,
     INDEX idx_status (status),
     INDEX idx_section (section_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
+-- 3. Tenants
+CREATE TABLE IF NOT EXISTS tenants (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    full_name VARCHAR(100) NOT NULL,
+    date_of_birth DATE,
+    contact_number VARCHAR(20) NOT NULL,
+    street VARCHAR(100),
+    barangay VARCHAR(50),
+    city VARCHAR(50),
+    stall_id INT,
+    business_name VARCHAR(100) NOT NULL,
+    status ENUM('active', 'inactive', 'pending') DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (stall_id) REFERENCES stalls(id) ON DELETE SET NULL,
+    INDEX idx_status (status),
+    INDEX idx_stall (stall_id),
+    INDEX idx_tenant_name (full_name)
+);
+
+-- ======================================================
+-- VERIFY TABLES
+-- ======================================================
+SHOW TABLES;
+DESCRIBE sections;
+DESCRIBE stalls;
+DESCRIBE tenants;

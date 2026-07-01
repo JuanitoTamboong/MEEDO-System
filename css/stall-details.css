@@ -1,0 +1,339 @@
+/* Stall Details Styles */
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 15px;
+    width: 100%;
+}
+
+.header h1 {
+    font-size: 28px;
+    color: #1a2332;
+    font-weight: 700;
+}
+
+.header h1 i {
+    color: #2d6a9f;
+    margin-right: 12px;
+}
+
+.header p {
+    color: #7a8a9e;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.btn-back {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #f3f4f6;
+    color: #4b5563;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.3s;
+}
+
+.btn-back:hover {
+    background: #e5e7eb;
+    transform: translateY(-2px);
+}
+
+/* Details Grid */
+.details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    margin-bottom: 25px;
+}
+
+.details-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* Detail Cards */
+.detail-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e1e5ea;
+    width: 100%;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e1e5ea;
+}
+
+.card-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a2332;
+}
+
+.card-header h3 i {
+    color: #2d6a9f;
+    margin-right: 8px;
+}
+
+/* Stall Card */
+.stall-card .stall-number {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a2332;
+}
+
+.status-badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.status-badge.occupied {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.status-badge.vacant {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-badge.paid {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-badge.unpaid {
+    background: #fce4ec;
+    color: #c62828;
+}
+
+.status-badge.active {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.status-badge.inactive {
+    background: #f5f5f5;
+    color: #7a8a9e;
+}
+
+.status-badge.pending {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+/* Detail Items */
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f5f7fb;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-item .label {
+    color: #7a8a9e;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.detail-item .value {
+    color: #1a2332;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.detail-item .no-tenant {
+    color: #7a8a9e;
+    font-weight: 400;
+}
+
+/* Tenant Card */
+.tenant-card {
+    margin-bottom: 25px;
+}
+
+/* Payment History Table */
+.history-card {
+    margin-bottom: 25px;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 500px;
+}
+
+thead th {
+    text-align: left;
+    padding: 10px 12px;
+    color: #7a8a9e;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e1e5ea;
+    background: #f8f9fa;
+}
+
+tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e1e5ea;
+    font-size: 14px;
+    color: #1a2332;
+}
+
+tbody tr:hover {
+    background: #f8f9fa;
+}
+
+/* Action Bar */
+.action-bar {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.action-bar button {
+    padding: 12px 28px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: #2d6a9f;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #1a4f7a;
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    background: #d32f2f;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #b71c1c;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.btn-secondary:hover {
+    background: #e5e7eb;
+    transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .header-actions {
+        width: 100%;
+    }
+    
+    .btn-back {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .details-grid-2 {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-bar {
+        flex-direction: column;
+    }
+    
+    .action-bar button {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .detail-card {
+        padding: 18px;
+    }
+    
+    .stall-card .stall-number {
+        font-size: 22px;
+    }
+    
+    .detail-item {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .detail-item .value {
+        font-size: 13px;
+    }
+}

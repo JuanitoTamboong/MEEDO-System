@@ -14,7 +14,7 @@
         </li>
 
         <li class="<?= isset($activePage) && $activePage === 'stall_monitoring' ? 'active' : '' ?>">
-            <a href="stall_monitoring.php">
+            <a href="stall-monitoring.php">
                 <i class="fa-solid fa-shop"></i>
                 Stall Monitoring
             </a>
@@ -28,14 +28,14 @@
         </li>
 
         <li class="<?= isset($activePage) && $activePage === 'register_tenant' ? 'active' : '' ?>">
-            <a href="#">
+            <a href="register-tenants.php">
                 <i class="fa-regular fa-user"></i>
                 Register Tenant
             </a>
         </li>
 
         <li class="<?= isset($activePage) && $activePage === 'financial_reports' ? 'active' : '' ?>">
-            <a href="#">
+            <a href="financial-reports.php">
                 <i class="fa-regular fa-clipboard"></i>
                 Financial Reports
             </a>
