@@ -10,29 +10,39 @@
 
     <ul>
 
-        <li class="active">
-            <i class="fa-solid fa-table-cells-large"></i>
-            Home
+        <li class="<?= isset($activePage) && $activePage === 'home' ? 'active' : '' ?>">
+            <a href="homepage.php">
+                <i class="fa-solid fa-table-cells-large"></i>
+                Home
+            </a>
         </li>
 
-        <li>
-            <i class="fa-solid fa-shop"></i>
-            Stall Monitoring
+        <li class="<?= isset($activePage) && $activePage === 'stall_monitoring' ? 'active' : '' ?>">
+            <a href="stall_monitoring.php">
+                <i class="fa-solid fa-shop"></i>
+                Stall Monitoring
+            </a>
         </li>
 
-        <li>
-            <i class="fa-solid fa-store"></i>
-            Manage Stalls
+        <li class="<?= isset($activePage) && $activePage === 'manage_stalls' ? 'active' : '' ?>">
+            <a href="manage-stalls.php">
+                <i class="fa-solid fa-store"></i>
+                Manage Stalls
+            </a>
         </li>
 
-        <li>
-            <i class="fa-regular fa-user"></i>
-            Register Tenant
+        <li class="<?= isset($activePage) && $activePage === 'register_tenant' ? 'active' : '' ?>">
+            <a href="#">
+                <i class="fa-regular fa-user"></i>
+                Register Tenant
+            </a>
         </li>
 
-        <li>
-            <i class="fa-regular fa-clipboard"></i>
-            Financial Reports
+        <li class="<?= isset($activePage) && $activePage === 'financial_reports' ? 'active' : '' ?>">
+            <a href="#">
+                <i class="fa-regular fa-clipboard"></i>
+                Financial Reports
+            </a>
         </li>
 
     </ul>

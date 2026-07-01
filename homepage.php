@@ -16,7 +16,10 @@
 </head>
 <body>
 
-    <?php include 'includes/sidebar.php'; ?>
+    <?php
+    $activePage = 'home';
+    include 'includes/sidebar.php';
+    ?>
 
     <div class="main-content">
 
