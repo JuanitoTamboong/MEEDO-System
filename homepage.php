@@ -16,7 +16,7 @@
 </head>
 <body>
 
-    <?php include 'assets/includes/sidebar.php'; ?>
+    <?php include 'includes/sidebar.php'; ?>
 
     <div class="main-content">
 

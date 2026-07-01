@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-include "assets/includes/database.php";
+include "includes/database.php";
 
 if (isset($_POST['login'])) {
 
