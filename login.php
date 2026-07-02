@@ -54,11 +54,14 @@ if (isset($_POST['login'])) {
             exit();
         }
 
-        login_alert_and_redirect('Incorrect Password', 'index.php');
+        // Generic message to avoid user enumeration.
+        login_alert_and_redirect('User not found or password does not match.', 'index.php');
 
     } else {
-        login_alert_and_redirect('User not found.', 'index.php');
+        // Generic message to avoid user enumeration.
+        login_alert_and_redirect('User not found or password does not match.', 'index.php');
     }
+
 
     exit();
 }
