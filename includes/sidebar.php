@@ -60,8 +60,16 @@
 
 </div>
 
+<?php
+// Global auth guard for all pages that include this sidebar.
+// (Prevents direct access without login)
+require_once __DIR__ . '/auth.php';
+require_login();
+?>
+
 <!-- Custom Confirmation Modal -->
 <div id="logoutModal" class="logout-modal" style="display: none;">
+
     <div class="logout-modal-content">
         <div class="logout-modal-icon">
             <i class="fa-solid fa-triangle-exclamation"></i>

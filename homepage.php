@@ -37,11 +37,9 @@
                     </p>
                 </div>
                 <div class="header-actions">
-                    <div class="search">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" placeholder="Search tenant and stall">
-                    </div>
+                    <!-- searchbar removed -->
                 </div>
+
             </div>
 
             <div class="home">
