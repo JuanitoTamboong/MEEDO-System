@@ -327,6 +327,7 @@ try {
                     <button class="btn-primary" onclick="editTenant(<?php echo $tenant['id'] ?? 0; ?>)">
                         <i class="fa-solid fa-pen"></i> Edit Tenant
                     </button>
+
                     <button class="btn-danger" onclick="vacateStall('<?php echo $stall['stall_number']; ?>')">
                         <i class="fa-solid fa-user-slash"></i> Vacate Stall
                     </button>
@@ -348,6 +349,7 @@ try {
                 alert('No tenant found to edit.');
             }
         }
+
 
         function vacateStall(stallNumber) {
             if (confirm('Are you sure you want to vacate this stall? This will remove the current tenant.')) {
