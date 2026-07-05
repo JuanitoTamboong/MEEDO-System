@@ -38,14 +38,16 @@
     color: #1565c0;
 }
 
-.stat-card.occupied .stat-icon {
-    background: #fff3e0;
-    color: #e65100;
-}
-
-.stat-card.available .stat-icon {
+/* Paid - Green */
+.stat-card.paid .stat-icon {
     background: #e8f5e9;
     color: #2e7d32;
+}
+
+/* Unpaid - Orange */
+.stat-card.unpaid .stat-icon {
+    background: #fff3e0;
+    color: #e65100;
 }
 
 .stat-card.overdue .stat-icon {

@@ -109,8 +109,8 @@ function updateOverduePayments($conn) {
 updateOverduePayments($conn);
 
 $totalStalls = 0;
-$occupiedCount = 0;
-$vacantCount = 0;
+$paidCount = 0;
+$unpaidCount = 0;
 $overdueCount = 0;
 
 try {
@@ -124,23 +124,23 @@ try {
 }
 
 try {
-    $result = mysqli_query($conn, "SELECT COUNT(*) as count FROM stalls WHERE status = 'Occupied'");
+    $result = mysqli_query($conn, "SELECT COUNT(*) as count FROM payments WHERE status = 'Paid'");
     if ($result) {
         $row = mysqli_fetch_assoc($result);
-        $occupiedCount = $row['count'] ?? 0;
+        $paidCount = $row['count'] ?? 0;
     }
 } catch (Exception $e) {
-    $occupiedCount = 0;
+    $paidCount = 0;
 }
 
 try {
-    $result = mysqli_query($conn, "SELECT COUNT(*) as count FROM stalls WHERE status = 'Vacant'");
+    $result = mysqli_query($conn, "SELECT COUNT(*) as count FROM payments WHERE status = 'Pending'");
     if ($result) {
         $row = mysqli_fetch_assoc($result);
-        $vacantCount = $row['count'] ?? 0;
+        $unpaidCount = $row['count'] ?? 0;
     }
 } catch (Exception $e) {
-    $vacantCount = 0;
+    $unpaidCount = 0;
 }
 
 try {
@@ -230,6 +230,28 @@ try {
     <link rel="stylesheet" href="css/stall-monitoring.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Additional CSS to ensure correct colors */
+        .stat-card.paid .stat-icon {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .stat-card.unpaid .stat-icon {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .stat-card.total .stat-icon {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .stat-card.overdue .stat-icon {
+            background: #fce4ec;
+            color: #c62828;
+        }
+    </style>
 </head>
 <body>
 
@@ -270,22 +292,22 @@ try {
                         <p><?php echo $totalStalls; ?></p>
                     </div>
                 </div>
-                <div class="stat-card occupied">
+                <div class="stat-card paid">
                     <div class="stat-icon">
-                        <i class="fa-solid fa-users"></i>
+                        <i class="fa-solid fa-check-circle"></i>
                     </div>
                     <div class="stat-info">
-                        <h3>Occupied</h3>
-                        <p><?php echo $occupiedCount; ?></p>
+                        <h3>Paid</h3>
+                        <p><?php echo $paidCount; ?></p>
                     </div>
                 </div>
-                <div class="stat-card available">
+                <div class="stat-card unpaid">
                     <div class="stat-icon">
-                        <i class="fa-solid fa-store"></i>
+                        <i class="fa-solid fa-clock"></i>
                     </div>
                     <div class="stat-info">
-                        <h3>Available</h3>
-                        <p><?php echo $vacantCount; ?></p>
+                        <h3>Unpaid</h3>
+                        <p><?php echo $unpaidCount; ?></p>
                     </div>
                 </div>
                 <div class="stat-card overdue">
