@@ -1,151 +1,166 @@
-# MEEDO System — Stall & Rental Monitoring
+# 🌟 MEEDO Stall & Rental Monitoring System
 
-A PHP/MySQL web application for managing market **stalls**, **tenants**, and **rental payments** for **Odiongan Public Market MEEDO**.
+**Odiongan Public Market MEEDO** — a PHP + MySQL web app for managing **stalls**, **tenants**, and **monthly rental payments** (including **overdue penalties** and **financial reports**).
 
-## Features
+---
 
-- **Authentication** (Administrator / Treasury)
-- **Dashboard & monitoring**
-  - List stalls with tenant + section info
-  - Payment status badges (Paid / Pending / Overdue)
-  - Search/filter and CSV export (client-side)
-- **Stall management**
-  - Create sections
-  - Create stalls under sections
-  - Vacate stalls
-- **Tenant management**
-  - Register and edit tenant records
-- **Financial reports**
-  - Monthly report (collections/payments)
-  - Annual report (monthly breakdown)
-  - Overdue report
+## ✨ Features
 
-## Tech Stack
+### 👤 Authentication
+- Login for two roles:
+  - **Administrator**
+  - **Treasury**
+
+### 📊 Stall Monitoring
+- View all stalls with:
+  - Stall number
+  - Tenant (if occupied)
+  - Section name + icon
+  - Payment status badge (**Paid / Pending / Overdue**)
+- Overdue accounts table
+- Search + section/status filters
+- CSV export (client-side)
+
+### 🏗️ Manage Stalls
+- Create **Sections** (with icon + display order)
+- Create **Stalls** under sections (auto-generated stall numbers)
+- Vacate stalls / delete stalls/sections (with cascade behavior)
+
+### 🧾 Tenant Management
+- Register tenants
+- Edit tenant information
+
+### 💰 Financial Reports
+- **Monthly report** (collections/payments)
+- **Annual report** (monthly breakdown)
+- **Overdue report**
+
+---
+
+## 🧰 Tech Stack
 
 - **PHP** (procedural)
 - **MySQL / MariaDB**
-- **Bootstrap-style custom CSS** (project CSS files)
-- **Font Awesome** + **Google Fonts**
+- **mysqli** extension
+- **CSS**: project styles in `css/`
+- **UI**: Font Awesome + Google Fonts
 
-## Project Structure (high level)
+---
 
-- Entry pages:
-  - `index.php` (login page)
-  - `homepage.php`
-  - `stall-monitoring.php`
-  - `manage-stalls.php`
-  - `register-tenants.php`
-  - `edit-tenant.php`
-  - `vacate-stall.php`
-  - `financial-reports.php`
-  - `stall-details.php`
-- Shared:
-  - `includes/database.php` (DB connection)
-  - `includes/auth.php` (session guard)
+## 📁 Project Layout (important files)
+
+- **Login / navigation**
+  - `index.php` — login page
+  - `homepage.php` — dashboard home
+  - `includes/sidebar.php` — shared sidebar + page guard
+- **Main modules**
+  - `stall-monitoring.php` — monitoring, payment generation, overdue updates
+  - `stall-details.php` — details page per stall + payment history
+  - `manage-stalls.php` — sections/stalls management
+  - `register-tenants.php` — tenant registration
+  - `edit-tenant.php` — edit tenant
+  - `vacate-stall.php` — vacate stall
+  - `financial-reports.php` — monthly/annual/overdue reports
+- **Backend helpers**
+  - `includes/database.php` — database connection
+  - `includes/auth.php` — session guard (`require_login()`)
   - `includes/login-utils.php`
-  - `includes/sidebar.php`
-- Assets:
-  - `assets/` (logo/background)
-  - `css/` (page styles)
-  - `js/` (utility JS)
-- SQL references:
-  - `sql-inuse/table.txt` (schema for sections/stalls/tenants)
-  - `sql-inuse/account.txt` (seed login accounts)
+- **SQL reference scripts**
+  - `sql-inuse/table.txt` — schema for `sections`, `stalls`, `tenants`, `login`
+  - `sql-inuse/account.txt` — seed login accounts
 
-## Requirements
+---
 
-- PHP (with mysqli enabled)
+## ✅ Requirements
+
+- PHP with **mysqli** enabled
 - MySQL/MariaDB
-- Web server (XAMPP recommended given `c:/xampp/htdocs` layout)
+- Web server (XAMPP recommended)
 
-## Database Setup
+---
 
-1. **Create the database**
-   - Database name used in `includes/database.php`:
-     - `meedo_system`
+## 🗄️ Database Setup (MySQL)
 
-2. **Import schema**
-   - Use `sql-inuse/table.txt` to create:
-     - `sections`
-     - `stalls`
-     - `tenants`
+### 1) Create the database
+The application connects to database name:
+- `meedo_system`
 
-3. **Seed accounts**
-   - Import `sql-inuse/account.txt` into `login` table.
-   - The `login` table definition is in `sql-inuse/table.txt`.
+### 2) Create tables
+Use:
+- `sql-inuse/table.txt`
 
-4. **Login credentials** (from `sql-inuse/account.txt`)
+This creates:
+- `sections`
+- `stalls`
+- `tenants`
+- `login` (schema is in `sql-inuse/table.txt` and/or `sql-inuse/table.txt`)
+
+### 3) Seed user accounts
+Use:
+- `sql-inuse/account.txt`
+
+Seeded accounts:
 
 | Username | Password | Role |
 |---|---|---|
 | `admin` | `admin123` | `Administrator` |
 | `treasury` | `treasury123` | `Treasury` |
 
-> Note: The application may attempt to create the `payments` table at runtime (see `stall-monitoring.php`).
+### 4) Notes about `payments`
+`payments` may be created at runtime by `stall-monitoring.php` (it includes a `CREATE TABLE IF NOT EXISTS payments ...`).
 
-## How to Run (Local with XAMPP)
+---
 
-1. Start **Apache** and **MySQL** in XAMPP.
-2. Copy/ensure this project is in:
+## 🚀 How to Run (Local / XAMPP)
+
+1. Start **Apache** + **MySQL** in XAMPP.
+2. Ensure project is located at:
    - `c:/xampp/htdocs/MEEDO-System/`
-3. Open the app in browser:
+3. Open in browser:
    - `http://localhost/MEEDO-System/`
 4. Login using the seeded accounts.
 
-## Usage Guide
+---
 
-### 1) Stall Monitoring
+## 🧠 Usage Quick Guide
 
-- View all stalls and current tenant details.
-- Payment status is shown per stall.
-- Overdue accounts are displayed in a separate table.
+### Stall Monitoring
+- Open **Stall Monitoring** to view stalls and payment status
+- Overdue accounts are automatically updated based on date
 
-### 2) Manage Stalls
+### Manage Stalls
+- Add sections and stalls
+- Stall numbers are auto-generated using the section id
 
-- Add sections (icon + display order).
-- Add stalls to sections (stall number is auto-generated based on section id).
-- Delete sections/stalls (section deletion cascades to stalls).
+### Tenant + Vacate
+- Assign/edit tenants when a stall is occupied
+- Vacate removes tenant association and marks stall as vacant
 
-### 3) Register / Edit Tenant
+### Financial Reports
+- Use filters inside `financial-reports.php`
+- Export generates CSV from the current table view
 
-- Assign a tenant to an occupied stall.
-- Edit tenant details while stall remains occupied.
+---
 
-### 4) Vacate Stall
+## 🔒 Security Notes (for production)
 
-- Removes tenant association and marks stall as vacant.
+Current app uses session-based auth via:
+- `includes/auth.php`
 
-### 5) Financial Reports
+For production hardening, ensure:
+- Consistent use of **prepared statements** across all queries
+- **CSRF protection** for all POST actions
+- Server-side validation for all inputs
+- Prefer removing any legacy plain-text password support (if not needed)
 
-- Monthly collections based on paid payments.
-- Annual breakdown by month.
-- Overdue accounts report.
+---
 
-## CSV Export
+## 🧾 Development Notes
+- A roadmap exists in `TODO.md`.
 
-Exports are generated on the client-side by reading the HTML table and generating a CSV file for download.
+---
 
-## Security Notes (Important)
+## 📄 License
 
-- The app uses session-based auth via `includes/auth.php`.
-- Some pages use prepared statements, but not all SQL is fully parameterized.
-- For production use, harden:
-  - SQL queries (use prepared statements consistently)
-  - Input validation and output escaping
-  - CSRF protection for POST actions
-
-## Development / Testing
-
-- There is an existing `TODO.md` tracking planned upgrades.
-- Validate flows:
-  - Login (Administrator + Treasury)
-  - Add section / add stall
-  - Register tenant and edit tenant
-  - Vacate stall
-  - Payment generation + overdue updates
-  - Financial reports filters and exports
-
-## License
-
-Add your preferred license header here (not specified in repository).
+Not specified in repository. Add your preferred license text (e.g., MIT/Apache/GPL) if needed.
 
