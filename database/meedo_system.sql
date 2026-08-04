@@ -53,7 +53,7 @@ CREATE TABLE `payments` (
   `stall_id` int(11) DEFAULT NULL,
   `tenant_name` varchar(100) DEFAULT NULL,
   `amount` decimal(10,2) NOT NULL,
-  `payment_date` date NOT NULL,
+`payment_date` date DEFAULT NULL,
   `due_date` date NOT NULL,
   `receipt_number` varchar(50) DEFAULT NULL,
   `month_covered` date DEFAULT NULL,

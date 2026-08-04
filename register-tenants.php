@@ -25,6 +25,9 @@ $create_payments = "CREATE TABLE IF NOT EXISTS payments (
 
 mysqli_query($conn, $create_payments);
 
+// Ensure payment_date can be NULL so pending/unpaid records can be created
+mysqli_query($conn, "ALTER TABLE payments MODIFY payment_date DATE NULL");
+
 $totalTenants = 0;
 $newThisMonth = 0;
 $stallAvailable = 0;

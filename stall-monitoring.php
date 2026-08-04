@@ -25,6 +25,9 @@ $create_payments = "CREATE TABLE IF NOT EXISTS payments (
 
 mysqli_query($conn, $create_payments);
 
+// Ensure payment_date can be NULL so pending/unpaid records can be created
+mysqli_query($conn, "ALTER TABLE payments MODIFY payment_date DATE NULL");
+
 function generateNextMonthPayment($conn) {
     $currentMonth = date('Y-m-01');
     $nextMonth = date('Y-m-01', strtotime('+1 month'));
@@ -186,7 +189,7 @@ try {
 
 $overdueList = [];
 try {
-    $query = "SELECT 
+$query = "SELECT 
                 p.*,
                 s.stall_number,
                 s.monthly_rent,
@@ -194,7 +197,7 @@ try {
                 sec.section_name
               FROM payments p
               LEFT JOIN stalls s ON p.stall_id = s.id
-              LEFT JOIN tenants t ON s.id = t.stall_id
+              LEFT JOIN tenants t ON s.id = t.stall_id AND t.status = 'active'
               LEFT JOIN sections sec ON s.section_id = sec.id
               WHERE p.status = 'Overdue'
               ORDER BY p.due_date ASC";

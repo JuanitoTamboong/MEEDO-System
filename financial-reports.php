@@ -113,13 +113,14 @@ try {
 
 $overduePayments = [];
 try {
-    $query = "SELECT 
+$query = "SELECT 
                 p.*,
                 s.stall_number,
                 sec.section_name,
-                p.tenant_name
+                t.full_name AS tenant_name
               FROM payments p
               LEFT JOIN stalls s ON p.stall_id = s.id
+              LEFT JOIN tenants t ON s.id = t.stall_id AND t.status = 'active'
               LEFT JOIN sections sec ON s.section_id = sec.id
               WHERE p.status = 'Overdue'
               ORDER BY p.due_date ASC";
