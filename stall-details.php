@@ -59,7 +59,7 @@ if ($stall['status'] == 'Occupied') {
 try {
     $table_check = mysqli_query($conn, "SHOW TABLES LIKE 'payments'");
     if ($table_check && mysqli_num_rows($table_check) > 0) {
-        $query = "SELECT * FROM payments WHERE stall_id = " . $stall['id'] . " ORDER BY payment_date DESC LIMIT 10";
+        $query = "SELECT * FROM payments WHERE stall_id = " . $stall['id'] . " ORDER BY month_covered DESC LIMIT 10";
         $result = mysqli_query($conn, $query);
         if ($result && mysqli_num_rows($result) > 0) {
             while ($row = mysqli_fetch_assoc($result)) {
@@ -76,9 +76,11 @@ $currentPayment = null;
 try {
     $table_check = mysqli_query($conn, "SHOW TABLES LIKE 'payments'");
     if ($table_check && mysqli_num_rows($table_check) > 0) {
-        $query = "SELECT * FROM payments WHERE stall_id = " . $stall['id'] . " 
-                  AND MONTH(payment_date) = MONTH(CURDATE()) 
-                  AND YEAR(payment_date) = YEAR(CURDATE())";
+$query = "SELECT * FROM payments WHERE stall_id = " . $stall['id'] . " 
+                  AND MONTH(month_covered) = MONTH(CURDATE()) 
+                  AND YEAR(month_covered) = YEAR(CURDATE()) 
+                  ORDER BY CASE WHEN status = 'Paid' THEN 0 ELSE 1 END 
+                  LIMIT 1";
         $result = mysqli_query($conn, $query);
         if ($result && mysqli_num_rows($result) > 0) {
             $currentPayment = mysqli_fetch_assoc($result);
@@ -197,9 +199,14 @@ try {
                 <div class="detail-card payment-card">
                     <div class="card-header">
                         <h3><i class="fa-solid fa-credit-card"></i> Payment Status</h3>
-                        <span class="status-badge <?php echo $currentPayment ? 'paid' : 'unpaid'; ?>">
-                            <i class="fa-solid <?php echo $currentPayment ? 'fa-check-circle' : 'fa-exclamation-circle'; ?>"></i>
-                            <?php echo $currentPayment ? 'Paid' : 'Unpaid'; ?>
+<?php
+                        $paymentStatus = $currentPayment['status'] ?? 'Unpaid';
+                        $statusClass = strtolower($paymentStatus) === 'overdue' ? 'overdue' : (strtolower($paymentStatus) === 'paid' ? 'paid' : 'unpaid');
+                        $statusIcon = strtolower($paymentStatus) === 'overdue' ? 'fa-exclamation-triangle' : (strtolower($paymentStatus) === 'paid' ? 'fa-check-circle' : 'fa-exclamation-circle');
+                        ?>
+                        <span class="status-badge <?php echo $statusClass; ?>">
+                            <i class="fa-solid <?php echo $statusIcon; ?>"></i>
+                            <?php echo $paymentStatus; ?>
                         </span>
                     </div>
                     <div class="card-body">
@@ -207,22 +214,29 @@ try {
                             <span class="label">Due Date</span>
                             <span class="value">Every 1st of the month</span>
                         </div>
-                        <div class="detail-item">
+<div class="detail-item">
                             <span class="label">Current Month</span>
                             <span class="value"><?php echo date("F Y"); ?></span>
                         </div>
-                        <div class="detail-item">
-                            <span class="label">Amount Due</span>
-                            <span class="value">₱<?php echo number_format($stall['monthly_rent'] ?? 0, 2); ?></span>
-                        </div>
                         <?php if ($currentPayment): ?>
                             <div class="detail-item">
-                                <span class="label">Last Payment</span>
+                                <span class="label">Amount Due</span>
                                 <span class="value">₱<?php echo number_format($currentPayment['amount'] ?? 0, 2); ?></span>
                             </div>
                             <div class="detail-item">
-                                <span class="label">Payment Date</span>
-                                <span class="value"><?php echo date("F d, Y", strtotime($currentPayment['payment_date'] ?? date('Y-m-d'))); ?></span>
+                                <span class="label">Due Date</span>
+                                <span class="value"><?php echo date("F d, Y", strtotime($currentPayment['due_date'] ?? date('Y-m-d'))); ?></span>
+                            </div>
+                            <?php if (!empty($currentPayment['payment_date'])): ?>
+                                <div class="detail-item">
+                                    <span class="label">Payment Date</span>
+                                    <span class="value"><?php echo date("F d, Y", strtotime($currentPayment['payment_date'])); ?></span>
+                                </div>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <div class="detail-item">
+                                <span class="label">Amount Due</span>
+                                <span class="value">₱<?php echo number_format($stall['monthly_rent'] ?? 0, 2); ?></span>
                             </div>
                         <?php endif; ?>
                     </div>
