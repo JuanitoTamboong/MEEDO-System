@@ -265,9 +265,13 @@ Thank you for your continued support!
                             <span class="label">Amount Due</span>
                             <span class="value">₱<?php echo number_format($monthlyRent, 2); ?></span>
                         </div>
-                        <div class="info-item">
+<div class="info-item">
                             <span class="label">Due Date</span>
                             <span class="value"><?php echo date('M d, Y', strtotime($dueDate)); ?></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Contact Number</span>
+                            <span class="value"><?php echo htmlspecialchars($contactNumber ?: '—'); ?></span>
                         </div>
                     </div>
 

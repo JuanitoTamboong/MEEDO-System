@@ -257,9 +257,13 @@ Thank you for your prompt attention to this matter.
                             <span class="label">Total Due</span>
                             <span class="value danger">₱<?php echo number_format($totalDue, 2); ?></span>
                         </div>
-                        <div class="info-item">
+<div class="info-item">
                             <span class="label">Days Overdue</span>
                             <span class="value danger"><?php echo $daysOverdue; ?> days</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Contact Number</span>
+                            <span class="value"><?php echo htmlspecialchars($contactNumber ?: '—'); ?></span>
                         </div>
                     </div>
 
