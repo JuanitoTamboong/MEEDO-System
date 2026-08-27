@@ -49,6 +49,13 @@ $userRole = $_SESSION['role'] ?? '';
                 Financial Reports
             </a>
         </li>
+
+        <li class="<?= isset($activePage) && $activePage === 'contracts' ? 'active' : '' ?>">
+            <a href="contracts.php">
+                <i class="fa-solid fa-file-contract"></i>
+                Contracts
+            </a>
+        </li>
     </ul>
 
     <div class="admin">
