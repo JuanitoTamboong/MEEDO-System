@@ -127,6 +127,12 @@ $query = "SELECT * FROM payments WHERE stall_id = " . $stall['id'] . "
                 </div>
             </div>
 
+            <?php if (isset($_GET['payment']) && $_GET['payment'] === 'success'): ?>
+                <div class="alert alert-success">
+                    <i class="fa-solid fa-check-circle"></i> Payment recorded successfully. The next rent period is now ready.
+                </div>
+            <?php endif; ?>
+
             <!-- Stall Information -->
             <div class="details-grid">
                 <!-- Stall Card -->
@@ -338,6 +344,10 @@ $query = "SELECT * FROM payments WHERE stall_id = " . $stall['id'] . "
                         <i class="fa-solid fa-user-plus"></i> Assign Tenant
                     </button>
                 <?php else: ?>
+                    <a class="btn-primary" href="pay-rent.php?stall=<?php echo urlencode($stall['id']); ?>">
+                        <i class="fa-solid fa-money-bill-wave"></i> Record Rent Payment
+                    </a>
+
                     <button class="btn-primary" onclick="editTenant(<?php echo $tenant['id'] ?? 0; ?>)">
                         <i class="fa-solid fa-pen"></i> Edit Tenant
                     </button>
