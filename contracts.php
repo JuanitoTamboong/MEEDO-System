@@ -43,10 +43,8 @@ if (!mysqli_query($conn, $createExtensions)) {
     die('Unable to create contract extension history: ' . htmlspecialchars(mysqli_error($conn)));
 }
 
-// The end date is the renewal boundary, so do not count an unpaid row in that month.
 mysqli_query($conn, "DELETE p FROM payments p INNER JOIN contracts c ON c.stall_id = p.stall_id WHERE p.status <> 'Paid' AND p.month_covered = DATE_FORMAT(c.end_date, '%Y-%m-01')");
 
-// Create a standard one-year contract for existing active tenants that do not have one.
 $activeTenants = mysqli_query($conn, "SELECT t.id, t.stall_id, DATE(t.created_at) AS start_date FROM tenants t LEFT JOIN contracts c ON c.tenant_id = t.id AND c.stall_id = t.stall_id WHERE t.status = 'active' AND t.stall_id IS NOT NULL AND c.id IS NULL");
 if ($activeTenants) {
     $insertContract = mysqli_prepare($conn, "INSERT IGNORE INTO contracts (tenant_id, stall_id, start_date, end_date, status) VALUES (?, ?, ?, DATE_ADD(?, INTERVAL 1 YEAR), 'Active')");
@@ -266,7 +264,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['undo_extension'])) {
         $history = mysqli_fetch_assoc(mysqli_stmt_get_result($historyStatement));
         mysqli_stmt_close($historyStatement);
         if (!$history) {
-            // Older extensions may not have history; use the latest paid month as the safe boundary.
             $paidMonthStatement = mysqli_prepare($conn, "SELECT MAX(p.month_covered) AS latest_paid_month FROM payments p INNER JOIN contracts c ON c.stall_id = p.stall_id WHERE c.id = ? AND p.status = 'Paid'");
             if (!$paidMonthStatement) {
                 throw new RuntimeException(mysqli_error($conn));
@@ -322,7 +319,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['undo_extension'])) {
     }
 }
 
-// Refresh expired status before displaying the list.
 mysqli_query($conn, "UPDATE contracts SET status = 'Expired' WHERE end_date < CURDATE() AND status = 'Active'");
 
 $contracts = [];
@@ -357,139 +353,487 @@ if ($contractResult) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .contracts-header { margin-bottom: 24px; }
-        .contracts-header h1 { color: #1a2332; font-size: 28px; }
-        .contracts-header p { color: #7a8a9e; font-size: 14px; margin-top: 5px; }
-        .notice { padding: 13px 16px; border-radius: 8px; margin-bottom: 18px; font-size: 14px; }
-        .notice.success { background: #edf9f1; border: 1px solid #b8e3c7; color: #176b3a; }
-        .notice.error { background: #fce4ec; border: 1px solid #f3b8c5; color: #a61b39; }
-        .contract-table { background: white; border: 1px solid #e1e5ea; border-radius: 12px; padding: 20px; overflow-x: auto; }
-        .contract-table table { width: 100%; border-collapse: collapse; min-width: 850px; }
-        .contract-table th { background: #f8f9fa; color: #7a8a9e; font-size: 12px; text-align: left; text-transform: uppercase; padding: 12px; border-bottom: 2px solid #e1e5ea; }
-        .contract-table td { color: #1a2332; font-size: 13px; padding: 14px 12px; border-bottom: 1px solid #edf0f3; vertical-align: middle; }
-        .contract-table tr:last-child td { border-bottom: 0; }
-        .contract-table small { display: block; color: #7a8a9e; margin-top: 3px; }
-        .paid-total { color: #2e7d32 !important; font-weight: 600; }
-        .remaining-total { color: #c62828 !important; font-weight: 600; }
-        .contract-status { display: inline-flex; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-        .contract-status.active { background: #e8f5e9; color: #2e7d32; }
-        .contract-status.expired { background: #fce4ec; color: #c62828; }
-        .extend-form { display: flex; align-items: center; gap: 6px; }
-        .extend-form select { border: 1px solid #d6dce3; border-radius: 6px; padding: 7px; color: #1a2332; background: white; }
-        .extend-form button { border: 0; border-radius: 6px; padding: 8px 11px; background: #2d6a9f; color: white; cursor: pointer; font: 500 12px 'Poppins', sans-serif; }
-        .extend-form button:hover { background: #1a4f7a; }
-        .contract-actions { display: grid; gap: 7px; }
-        .pay-full-contract { background: #dff4f1 !important; color: #087f73 !important; }
-        .pay-full-contract:hover { background: #bde8e2 !important; }
-        .contract-actions .edit-contract { background: #eef5fb; color: #245b87; }
-        .contract-actions .undo-contract { background: #fff3e0; color: #a45100; }
-        .contract-actions .edit-contract:hover { background: #dcecf8; }
-        .contract-actions .undo-contract:hover { background: #ffe0b2; }
-        .read-only { color: #7a8a9e; font-size: 12px; }
-        .empty-state { color: #7a8a9e; text-align: center; padding: 35px 15px; }
+        /* Modern Redesign - Clean Card Style */
+        .contracts-header {
+            margin-bottom: 28px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .contracts-header h1 {
+            color: #1a2332;
+            font-size: 28px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .contracts-header h1 i {
+            color: #2563eb;
+        }
+        .contracts-header p {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        .contracts-header .badge-count {
+            background: #eef2f6;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-size: 14px;
+            color: #1a2332;
+            font-weight: 500;
+        }
+        .badge-count i {
+            color: #2563eb;
+            margin-right: 6px;
+        }
+
+        .notice {
+            padding: 14px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .notice.success {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+        }
+        .notice.error {
+            background: #fef2f2;
+            border: 1px solid #fca5a5;
+            color: #991b1b;
+        }
+
+        /* Card-based contract list */
+        .contract-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .contract-card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #e9edf2;
+            padding: 20px 24px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            transition: box-shadow 0.2s, border-color 0.2s;
+        }
+        .contract-card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+            border-color: #cbd5e1;
+        }
+
+        .contract-card .tenant-info {
+            min-width: 180px;
+            flex: 2;
+        }
+        .contract-card .tenant-info .name {
+            font-weight: 600;
+            font-size: 16px;
+            color: #0b1a2e;
+        }
+        .contract-card .tenant-info .business {
+            font-size: 13px;
+            color: #64748b;
+            display: block;
+            margin-top: 2px;
+        }
+        .contract-card .tenant-info .stall {
+            font-size: 13px;
+            color: #475569;
+            margin-top: 4px;
+        }
+        .contract-card .tenant-info .stall i {
+            color: #6b7280;
+            width: 16px;
+        }
+
+        .contract-card .financials {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            flex: 3;
+            justify-content: center;
+        }
+        .contract-card .financials .amount-box {
+            text-align: center;
+        }
+        .contract-card .financials .amount-box .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+        .contract-card .financials .amount-box .value {
+            font-weight: 700;
+            font-size: 16px;
+            color: #0b1a2e;
+        }
+        .contract-card .financials .amount-box .value.paid {
+            color: #16a34a;
+        }
+        .contract-card .financials .amount-box .value.remaining {
+            color: #dc2626;
+        }
+        .contract-card .financials .amount-box .value.scheduled {
+            color: #2563eb;
+        }
+
+        .contract-card .date-range {
+            text-align: center;
+            flex: 1.5;
+            min-width: 140px;
+        }
+        .contract-card .date-range .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+        .contract-card .date-range .dates {
+            font-size: 13px;
+            font-weight: 500;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .contract-card .date-range .dates .arrow {
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        .contract-card .status-badge {
+            flex: 0.8;
+            min-width: 90px;
+            text-align: center;
+        }
+        .contract-status {
+            display: inline-flex;
+            padding: 5px 14px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .contract-status.active {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        .contract-status.expired {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        .contract-status.terminated {
+            background: #f1f3f4;
+            color: #6b7280;
+        }
+
+        .contract-card .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            flex: 2;
+            justify-content: flex-end;
+            min-width: 200px;
+        }
+
+        .actions .extend-form {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f8fafc;
+            padding: 4px 8px 4px 12px;
+            border-radius: 40px;
+            border: 1px solid #e2e8f0;
+        }
+        .extend-form select {
+            border: 0;
+            background: transparent;
+            font-size: 12px;
+            font-weight: 500;
+            color: #1a2332;
+            padding: 4px 0;
+            outline: none;
+            cursor: pointer;
+        }
+        .extend-form button {
+            border: 0;
+            border-radius: 40px;
+            padding: 6px 14px;
+            background: #2563eb;
+            color: #fff;
+            font: 500 12px 'Poppins', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.15s;
+        }
+        .extend-form button:hover {
+            background: #1d4ed8;
+        }
+
+        .actions .action-btn {
+            border: 0;
+            border-radius: 40px;
+            padding: 6px 14px;
+            font: 500 12px 'Poppins', sans-serif;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.15s;
+            border: 1px solid transparent;
+        }
+        .action-btn.pay-full {
+            background: #ecfdf5;
+            color: #065f46;
+            border-color: #a7f3d0;
+        }
+        .action-btn.pay-full:hover {
+            background: #d1fae5;
+        }
+        .action-btn.undo {
+            background: #fffbeb;
+            color: #92400e;
+            border-color: #fde68a;
+        }
+        .action-btn.undo:hover {
+            background: #fef3c7;
+        }
+        .action-btn.edit-date {
+            background: #eff6ff;
+            color: #1e40af;
+            border-color: #bfdbfe;
+        }
+        .action-btn.edit-date:hover {
+            background: #dbeafe;
+        }
+
+        .read-only {
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+        .empty-state i {
+            font-size: 48px;
+            color: #cbd5e1;
+            margin-bottom: 12px;
+        }
+        .empty-state h3 {
+            color: #475569;
+            font-weight: 500;
+            font-size: 18px;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 900px) {
+            .contract-card {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 14px;
+                padding: 18px;
+            }
+            .contract-card .tenant-info,
+            .contract-card .financials,
+            .contract-card .date-range,
+            .contract-card .status-badge,
+            .contract-card .actions {
+                flex: 1 1 100%;
+                text-align: left;
+                min-width: unset;
+            }
+            .contract-card .financials {
+                justify-content: flex-start;
+            }
+            .contract-card .actions {
+                justify-content: flex-start;
+            }
+            .contract-card .date-range .dates {
+                justify-content: flex-start;
+            }
+            .contracts-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .actions .extend-form {
+                flex-wrap: wrap;
+                background: transparent;
+                border: 0;
+                padding: 0;
+                gap: 6px;
+            }
+            .extend-form select {
+                background: #f8fafc;
+                padding: 6px 12px;
+                border-radius: 40px;
+                border: 1px solid #e2e8f0;
+            }
+            .actions .action-btn {
+                padding: 6px 12px;
+                font-size: 11px;
+            }
+        }
     </style>
 </head>
 <body>
     <?php include 'includes/sidebar.php'; ?>
     <div class="main-content">
         <div class="content-wrapper">
+            <!-- Header -->
             <div class="contracts-header">
-                <h1><i class="fa-solid fa-file-contract"></i> Contract List</h1>
-                <p>View tenant rental contracts and extend active agreements.</p>
+                <div>
+                    <h1><i class="fa-solid fa-file-contract"></i> Contract List</h1>
+                    <p>View tenant rental contracts and manage extensions.</p>
+                </div>
+                <div class="badge-count">
+                    <i class="fa-regular fa-copy"></i> <?php echo count($contracts); ?> contracts
+                </div>
             </div>
 
+            <!-- Notices -->
             <?php if (!empty($successMessage)): ?>
-                <div class="notice success"><i class="fa-solid fa-check-circle"></i> <?php echo htmlspecialchars($successMessage); ?></div>
+                <div class="notice success"><i class="fa-regular fa-circle-check"></i> <?php echo htmlspecialchars($successMessage); ?></div>
             <?php endif; ?>
             <?php if (!empty($errorMessage)): ?>
-                <div class="notice error"><i class="fa-solid fa-exclamation-circle"></i> <?php echo htmlspecialchars($errorMessage); ?></div>
+                <div class="notice error"><i class="fa-regular fa-circle-xmark"></i> <?php echo htmlspecialchars($errorMessage); ?></div>
             <?php endif; ?>
 
-            <div class="contract-table">
-                <?php if (!$contracts): ?>
-                    <div class="empty-state">No tenant contracts found.</div>
-                <?php else: ?>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Tenant</th>
-                                <th>Stall</th>
-                                <th>Monthly Rent</th>
-                                <th>Total Scheduled</th>
-                                <th>Paid</th>
-                                <th>Remaining</th>
-                                <th>Contract Start</th>
-                                <th>Contract End</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($contracts as $contract): ?>
-                                <tr>
-                                    <td><strong><?php echo htmlspecialchars($contract['full_name']); ?></strong><small><?php echo htmlspecialchars($contract['business_name']); ?></small></td>
-                                    <td><?php echo htmlspecialchars($contract['stall_number']); ?></td>
-                                    <td>₱<?php echo number_format($contract['monthly_rent'], 2); ?></td>
-                                    <td><strong>₱<?php echo number_format($contract['scheduled_total'], 2); ?></strong></td>
-                                    <td class="paid-total">₱<?php echo number_format($contract['paid_total'], 2); ?></td>
-                                    <td class="remaining-total">₱<?php echo number_format($contract['remaining_total'], 2); ?></td>
-                                    <td><?php echo date('M d, Y', strtotime($contract['start_date'])); ?></td>
-                                    <td><?php echo date('M d, Y', strtotime($contract['end_date'])); ?></td>
-                                    <td><span class="contract-status <?php echo strtolower($contract['status']); ?>"><?php echo htmlspecialchars($contract['status']); ?></span></td>
-                                    <td>
-                                        <?php if (in_array($_SESSION['role'] ?? '', ['Administrator', 'Treasury'], true) && $contract['status'] !== 'Terminated'): ?>
-                                            <div class="contract-actions">
-                                                <form method="POST" class="extend-form">
-                                                    <input type="hidden" name="contract_id" value="<?php echo intval($contract['id']); ?>">
-                                                    <select name="months" aria-label="Extension period">
-                                                        <option value="1">+1 month</option>
-                                                        <option value="3">+3 months</option>
-                                                        <option value="6">+6 months</option>
-                                                        <option value="12" selected>+1 year</option>
-                                                    </select>
-                                                    <button type="submit" name="extend_contract"><i class="fa-solid fa-calendar-plus"></i> Extend</button>
-                                                </form>
-                                                <form method="POST" class="extend-form" onsubmit="return confirm('Mark all unpaid monthly payments in this contract as paid?');">
-                                                    <input type="hidden" name="contract_id" value="<?php echo intval($contract['id']); ?>">
-                                                    <button type="submit" name="pay_contract" class="pay-full-contract"><i class="fa-solid fa-money-check-dollar"></i> Pay Full Contract</button>
-                                                </form>
-                                                <form method="POST" class="extend-form" onsubmit="return confirm('Undo the most recent extension and delete all unpaid or overdue rent records for this contract? Paid records will not be deleted.');">
-                                                    <input type="hidden" name="contract_id" value="<?php echo intval($contract['id']); ?>">
-                                                    <button type="submit" name="undo_extension" class="undo-contract"><i class="fa-solid fa-rotate-left"></i> Undo and Delete Unpaid</button>
-                                                </form>
-                                                <form method="POST" class="extend-form" onsubmit="return editContractEnd(this, '<?php echo htmlspecialchars($contract['end_date'], ENT_QUOTES, 'UTF-8'); ?>');">
-                                                    <input type="hidden" name="contract_id" value="<?php echo intval($contract['id']); ?>">
-                                                    <input type="hidden" name="end_date" value="">
-                                                    <button type="submit" name="edit_contract" class="edit-contract"><i class="fa-solid fa-pen"></i> Edit End Date</button>
-                                                </form>
-                                            </div>
-                                        <?php else: ?>
-                                            <span class="read-only">View only</span>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                <?php endif; ?>
-            </div>
+            <!-- Contract List -->
+            <?php if (!$contracts): ?>
+                <div class="empty-state">
+                    <i class="fa-regular fa-file-lines"></i>
+                    <h3>No tenant contracts found</h3>
+                    <p style="color: #94a3b8; font-size: 14px; margin-top: 4px;">Contracts will appear here once tenants are assigned to stalls.</p>
+                </div>
+            <?php else: ?>
+                <div class="contract-grid">
+                    <?php foreach ($contracts as $contract): ?>
+                        <div class="contract-card">
+                            <!-- Tenant Info -->
+                            <div class="tenant-info">
+                                <div class="name"><?php echo htmlspecialchars($contract['full_name']); ?></div>
+                                <span class="business"><?php echo htmlspecialchars($contract['business_name']); ?></span>
+                                <div class="stall"><i class="fa-solid fa-store"></i> Stall <?php echo htmlspecialchars($contract['stall_number']); ?></div>
+                            </div>
+
+                            <!-- Financials -->
+                            <div class="financials">
+                                <div class="amount-box">
+                                    <div class="label">Monthly</div>
+                                    <div class="value">₱<?php echo number_format($contract['monthly_rent'], 2); ?></div>
+                                </div>
+                                <div class="amount-box">
+                                    <div class="label">Scheduled</div>
+                                    <div class="value scheduled">₱<?php echo number_format($contract['scheduled_total'], 2); ?></div>
+                                </div>
+                                <div class="amount-box">
+                                    <div class="label">Paid</div>
+                                    <div class="value paid">₱<?php echo number_format($contract['paid_total'], 2); ?></div>
+                                </div>
+                                <div class="amount-box">
+                                    <div class="label">Remaining</div>
+                                    <div class="value remaining">₱<?php echo number_format($contract['remaining_total'], 2); ?></div>
+                                </div>
+                            </div>
+
+                            <!-- Date Range -->
+                            <div class="date-range">
+                                <div class="label">Contract</div>
+                                <div class="dates">
+                                    <span><?php echo date('M d, Y', strtotime($contract['start_date'])); ?></span>
+                                    <span class="arrow"><i class="fa-solid fa-arrow-right-arrow-left"></i></span>
+                                    <span><?php echo date('M d, Y', strtotime($contract['end_date'])); ?></span>
+                                </div>
+                            </div>
+
+                            <!-- Status -->
+                            <div class="status-badge">
+                                <span class="contract-status <?php echo strtolower($contract['status']); ?>">
+                                    <?php echo htmlspecialchars($contract['status']); ?>
+                                </span>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="actions">
+                                <?php if (in_array($_SESSION['role'] ?? '', ['Administrator', 'Treasury'], true) && $contract['status'] !== 'Terminated'): ?>
+                                    <!-- Extend -->
+                                    <form method="POST" class="extend-form">
+                                        <input type="hidden" name="contract_id" value="<?php echo intval($contract['id']); ?>">
+                                        <select name="months" aria-label="Extension period">
+                                            <option value="1">+1m</option>
+                                            <option value="3">+3m</option>
+                                            <option value="6">+6m</option>
+                                            <option value="12" selected>+1y</option>
+                                        </select>
+                                        <button type="submit" name="extend_contract"><i class="fa-solid fa-calendar-plus"></i> Extend</button>
+                                    </form>
+
+                                    <!-- Pay Full -->
+                                    <form method="POST" onsubmit="return confirm('Mark all unpaid monthly payments in this contract as paid?');">
+                                        <input type="hidden" name="contract_id" value="<?php echo intval($contract['id']); ?>">
+                                        <button type="submit" name="pay_contract" class="action-btn pay-full"><i class="fa-regular fa-circle-check"></i> Pay All</button>
+                                    </form>
+
+                                    <!-- Undo -->
+                                    <form method="POST" onsubmit="return confirm('Undo the most recent extension and delete all unpaid records for this contract? Paid records will remain.');">
+                                        <input type="hidden" name="contract_id" value="<?php echo intval($contract['id']); ?>">
+                                        <button type="submit" name="undo_extension" class="action-btn undo"><i class="fa-solid fa-rotate-left"></i> Undo</button>
+                                    </form>
+
+                                    <!-- Edit End Date -->
+                                    <form method="POST" onsubmit="return editContractEnd(this, '<?php echo htmlspecialchars($contract['end_date'], ENT_QUOTES, 'UTF-8'); ?>');">
+                                        <input type="hidden" name="contract_id" value="<?php echo intval($contract['id']); ?>">
+                                        <input type="hidden" name="end_date" value="">
+                                        <button type="submit" name="edit_contract" class="action-btn edit-date"><i class="fa-regular fa-pen-to-square"></i> Edit</button>
+                                    </form>
+                                <?php else: ?>
+                                    <span class="read-only"><i class="fa-regular fa-eye"></i> View only</span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
+
+    <script>
+        function editContractEnd(form, currentEndDate) {
+            const newEndDate = prompt('Enter the correct contract end date (YYYY-MM-DD):', currentEndDate);
+            if (newEndDate === null) return false;
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(newEndDate)) {
+                alert('Please use the YYYY-MM-DD date format.');
+                return false;
+            }
+            form.querySelector('input[name="end_date"]').value = newEndDate;
+            return true;
+        }
+    </script>
 </body>
-<script>
-    function editContractEnd(form, currentEndDate) {
-        const newEndDate = prompt('Enter the correct contract end date (YYYY-MM-DD):', currentEndDate);
-        if (newEndDate === null) {
-            return false;
-        }
-
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(newEndDate)) {
-            alert('Please use the YYYY-MM-DD date format.');
-            return false;
-        }
-
-        form.querySelector('input[name="end_date"]').value = newEndDate;
-        return true;
-    }
-</script>
 </html>
