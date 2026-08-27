@@ -114,6 +114,34 @@ if (isset($_POST['add_stall'])) {
     }
 }
 
+// Handle monthly rent correction
+if (isset($_POST['edit_stall'])) {
+    $stall_id = intval($_POST['stall_id']);
+    $monthly_rent = floatval($_POST['monthly_rent']);
+
+    if ($stall_id <= 0 || $monthly_rent <= 0) {
+        $error_message = 'Please enter a valid monthly rent.';
+    } else {
+        $update_stall = mysqli_prepare($conn, "UPDATE stalls SET monthly_rent = ? WHERE id = ?");
+        mysqli_stmt_bind_param($update_stall, 'di', $monthly_rent, $stall_id);
+
+        if (mysqli_stmt_execute($update_stall)) {
+            mysqli_stmt_close($update_stall);
+
+            // Do not alter paid transactions; only future unpaid rent follows the new rate.
+            $update_payments = mysqli_prepare($conn, "UPDATE payments SET amount = ? WHERE stall_id = ? AND status <> 'Paid' AND month_covered >= DATE_FORMAT(CURDATE(), '%Y-%m-01')");
+            mysqli_stmt_bind_param($update_payments, 'di', $monthly_rent, $stall_id);
+            mysqli_stmt_execute($update_payments);
+            mysqli_stmt_close($update_payments);
+
+            $success_message = 'Monthly rent updated successfully.';
+        } else {
+            mysqli_stmt_close($update_stall);
+            $error_message = 'Database Error: ' . mysqli_error($conn);
+        }
+    }
+}
+
 // Handle Delete Section
 if (isset($_GET['delete_section'])) {
     $id = intval($_GET['delete_section']);
@@ -477,7 +505,12 @@ function getIconClass($icon_name) {
                                                 </div>
                                                 
                                                 <div class="stall-actions">
-                                                    <button class="btn-delete" onclick="deleteStall(<?php echo $stall['id']; ?>)">Delete</button>
+                                                    <button class="btn-edit" onclick="editStall(<?php echo $stall['id']; ?>, <?php echo htmlspecialchars(json_encode($stall['monthly_rent'])); ?>)">
+                                                        <i class="fa-solid fa-pen"></i> Edit Rent
+                                                    </button>
+                                                    <button class="btn-delete" onclick="deleteStall(<?php echo $stall['id']; ?>)">
+                                                        <i class="fa-solid fa-trash"></i> Delete
+                                                    </button>
                                                 </div>
                                             </div>
                                             <?php
@@ -531,6 +564,26 @@ function getIconClass($icon_name) {
             gap: 6px;
             flex-wrap: wrap;
             justify-content: center;
+        }
+
+        .stall-actions button {
+            border: none;
+            border-radius: 6px;
+            padding: 8px 10px;
+            cursor: pointer;
+            font: 500 12px 'Poppins', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-edit {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .btn-edit:hover {
+            background: #bbdefb;
         }
         
         select {
@@ -655,6 +708,28 @@ function getIconClass($icon_name) {
             if (confirm('Are you sure you want to delete this stall?')) {
                 window.location.href = '?delete_stall=' + id;
             }
+        }
+
+        function editStall(id, currentRent) {
+            const newRent = prompt('Enter the correct monthly rent:', Number(currentRent).toFixed(2));
+            if (newRent === null) {
+                return;
+            }
+
+            const rent = Number(newRent);
+            if (!Number.isFinite(rent) || rent <= 0) {
+                alert('Please enter a valid monthly rent greater than zero.');
+                return;
+            }
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'manage-stalls.php';
+            form.innerHTML = '<input type="hidden" name="stall_id" value="' + id + '">' +
+                '<input type="hidden" name="monthly_rent" value="' + rent.toFixed(2) + '">' +
+                '<input type="hidden" name="edit_stall" value="1">';
+            document.body.appendChild(form);
+            form.submit();
         }
 
         function moveSection(id, direction) {

@@ -37,13 +37,8 @@ $tenantName = $stall['full_name'] ?: $stall['tenant_name'] ?: 'Tenant';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['record_payment'])) {
     $paymentId = intval($_POST['payment_id'] ?? 0);
-    $amount = (float) ($_POST['amount'] ?? 0);
-    $paymentDate = trim($_POST['payment_date'] ?? '');
-    $receiptNumber = trim($_POST['receipt_number'] ?? '');
-    $notes = trim($_POST['notes'] ?? '');
-
-    if ($paymentId <= 0 || $amount <= 0 || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $paymentDate)) {
-        $errorMessage = 'Please provide a valid amount and payment date.';
+    if ($paymentId <= 0) {
+        $errorMessage = 'The payment record is invalid.';
     } else {
         mysqli_begin_transaction($conn);
         try {
@@ -57,8 +52,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['record_payment'])) {
                 throw new RuntimeException('This payment has already been recorded or is no longer available.');
             }
 
-            $updateStatement = mysqli_prepare($conn, "UPDATE payments SET amount = ?, payment_date = ?, receipt_number = NULLIF(?, ''), notes = NULLIF(?, ''), status = 'Paid', penalty = 0 WHERE id = ? AND stall_id = ?");
-            mysqli_stmt_bind_param($updateStatement, 'dsssii', $amount, $paymentDate, $receiptNumber, $notes, $paymentId, $stallId);
+            $amount = (float) $paymentRow['amount'];
+            $paymentDate = date('Y-m-d');
+
+            $updateStatement = mysqli_prepare($conn, "UPDATE payments SET amount = ?, payment_date = ?, status = 'Paid', penalty = 0 WHERE id = ? AND stall_id = ?");
+            mysqli_stmt_bind_param($updateStatement, 'dsii', $amount, $paymentDate, $paymentId, $stallId);
             if (!mysqli_stmt_execute($updateStatement)) {
                 throw new RuntimeException(mysqli_stmt_error($updateStatement));
             }
@@ -144,6 +142,8 @@ if (!$payment) {
         .payment-form label { color: #1a2332; font-size: 13px; font-weight: 500; }
         .payment-form input, .payment-form textarea { border: 2px solid #e1e5ea; border-radius: 8px; padding: 11px 13px; font: inherit; width: 100%; box-sizing: border-box; }
         .payment-form input:focus, .payment-form textarea:focus { border-color: #2d6a9f; outline: none; }
+        .payment-form input[readonly] { background: #f5f7fb; color: #596579; cursor: not-allowed; }
+        .field-note { color: #7a8a9e; font-size: 11px; }
         .payment-form textarea { min-height: 90px; resize: vertical; }
         .payment-summary { background: #f5f7fb; border: 1px solid #e1e5ea; border-radius: 8px; padding: 15px; }
         .payment-summary p { display: flex; justify-content: space-between; margin: 5px 0; color: #7a8a9e; font-size: 13px; }
@@ -180,19 +180,13 @@ if (!$payment) {
                         <input type="hidden" name="payment_id" value="<?php echo $payment['id']; ?>">
                         <div class="form-group">
                             <label for="amount">Amount paid</label>
-                            <input id="amount" type="number" name="amount" min="0.01" step="0.01" value="<?php echo htmlspecialchars($payment['amount']); ?>" required>
+                            <input id="amount" type="text" value="₱<?php echo number_format($payment['amount'], 2); ?>" readonly aria-readonly="true">
+                            <small class="field-note">Set by the stall's monthly rent.</small>
                         </div>
                         <div class="form-group">
                             <label for="payment_date">Payment date</label>
-                            <input id="payment_date" type="date" name="payment_date" value="<?php echo date('Y-m-d'); ?>" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="receipt_number">Receipt or reference number</label>
-                            <input id="receipt_number" type="text" name="receipt_number" maxlength="50" placeholder="Optional">
-                        </div>
-                        <div class="form-group">
-                            <label for="notes">Notes</label>
-                            <textarea id="notes" name="notes" placeholder="Optional payment notes"></textarea>
+                            <input id="payment_date" type="text" value="<?php echo date('F d, Y'); ?>" readonly aria-readonly="true">
+                            <small class="field-note">Automatically set to today.</small>
                         </div>
                         <div class="form-actions">
                             <button type="submit" name="record_payment"><i class="fa-solid fa-check"></i> Record Payment</button>
