@@ -169,13 +169,28 @@ try {
                 p.amount as payment_amount,
                 p.due_date,
                 p.penalty,
-                p.payment_date
+                                p.payment_date,
+                                COALESCE(contract_totals.scheduled_total, 0) AS contract_total,
+                                COALESCE(contract_totals.paid_total, 0) AS contract_paid,
+                                COALESCE(contract_totals.remaining_total, 0) AS contract_remaining
               FROM stalls s
               LEFT JOIN sections sec ON s.section_id = sec.id
               LEFT JOIN tenants t ON s.id = t.stall_id AND t.status = 'active'
               LEFT JOIN payments p ON s.id = p.stall_id 
                   AND MONTH(p.month_covered) = MONTH(CURDATE()) 
                   AND YEAR(p.month_covered) = YEAR(CURDATE())
+              LEFT JOIN (
+                  SELECT c.stall_id,
+                         SUM(p.amount) AS scheduled_total,
+                         SUM(CASE WHEN p.status = 'Paid' THEN p.amount ELSE 0 END) AS paid_total,
+                         SUM(CASE WHEN p.status <> 'Paid' THEN p.amount ELSE 0 END) AS remaining_total
+                  FROM contracts c
+                  LEFT JOIN payments p ON p.stall_id = c.stall_id
+                      AND p.month_covered >= DATE_FORMAT(c.start_date, '%Y-%m-01')
+                      AND p.month_covered < DATE_FORMAT(c.end_date, '%Y-%m-01')
+                  WHERE EXISTS (SELECT 1 FROM contract_extensions ce WHERE ce.contract_id = c.id)
+                  GROUP BY c.stall_id
+              ) contract_totals ON contract_totals.stall_id = s.id
               ORDER BY s.stall_number ASC";
     $result = mysqli_query($conn, $query);
     if ($result && mysqli_num_rows($result) > 0) {
@@ -398,6 +413,16 @@ try {
                                                 <br><small style="font-size: 10px; color: #7a8a9e;">
                                                     Due: <?php echo date('M d', strtotime($stall['due_date'] ?? date('Y-m-01'))); ?>
                                                 </small>
+                                                <?php if ((float) $stall['contract_total'] > 0): ?>
+                                                    <br><small class="contract-payment-summary">
+                                                        Contract paid: ₱<?php echo number_format($stall['contract_paid'], 2); ?>
+                                                        <?php if ((float) $stall['contract_remaining'] <= 0): ?>
+                                                            <strong>Paid in full</strong>
+                                                        <?php else: ?>
+                                                            <span>Remaining: ₱<?php echo number_format($stall['contract_remaining'], 2); ?></span>
+                                                        <?php endif; ?>
+                                                    </small>
+                                                <?php endif; ?>
                                             <?php endif; ?>
                                         </td>
                                         <td>

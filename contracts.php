@@ -141,6 +141,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['extend_contract'])) {
     }
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pay_contract'])) {
+    if (!in_array($_SESSION['role'] ?? '', ['Administrator', 'Treasury'], true)) {
+        http_response_code(403);
+        exit('Only an Administrator or Treasury user can record contract payments.');
+    }
+
+    $contractId = intval($_POST['contract_id'] ?? 0);
+    if ($contractId <= 0) {
+        $errorMessage = 'The contract record is invalid.';
+    } else {
+        mysqli_begin_transaction($conn);
+        try {
+            $contractStatement = mysqli_prepare($conn, "SELECT c.*, t.full_name, s.monthly_rent FROM contracts c INNER JOIN tenants t ON t.id = c.tenant_id INNER JOIN stalls s ON s.id = c.stall_id WHERE c.id = ? FOR UPDATE");
+            if (!$contractStatement) {
+                throw new RuntimeException(mysqli_error($conn));
+            }
+            mysqli_stmt_bind_param($contractStatement, 'i', $contractId);
+            mysqli_stmt_execute($contractStatement);
+            $contract = mysqli_fetch_assoc(mysqli_stmt_get_result($contractStatement));
+            mysqli_stmt_close($contractStatement);
+
+            if (!$contract) {
+                throw new RuntimeException('Contract could not be found.');
+            }
+
+            $paymentStatement = mysqli_prepare($conn, "INSERT IGNORE INTO payments (stall_id, tenant_name, amount, payment_date, due_date, month_covered, status) VALUES (?, ?, ?, NULL, ?, ?, 'Pending')");
+            if (!$paymentStatement) {
+                throw new RuntimeException(mysqli_error($conn));
+            }
+            $paymentStallId = (int) $contract['stall_id'];
+            $paymentTenantName = $contract['full_name'];
+            $paymentAmount = (float) $contract['monthly_rent'];
+            $paymentMonth = new DateTimeImmutable($contract['start_date']);
+            $paymentEnd = new DateTimeImmutable($contract['end_date']);
+            $paymentLastMonth = $paymentEnd->modify('first day of this month');
+
+            while ($paymentMonth < $paymentLastMonth) {
+                $monthCovered = $paymentMonth->format('Y-m-d');
+                mysqli_stmt_bind_param($paymentStatement, 'isdss', $paymentStallId, $paymentTenantName, $paymentAmount, $monthCovered, $monthCovered);
+                if (!mysqli_stmt_execute($paymentStatement)) {
+                    throw new RuntimeException(mysqli_stmt_error($paymentStatement));
+                }
+                $paymentMonth = $paymentMonth->modify('+1 month');
+            }
+            mysqli_stmt_close($paymentStatement);
+
+            $payStatement = mysqli_prepare($conn, "UPDATE payments p INNER JOIN contracts c ON c.stall_id = p.stall_id SET p.status = 'Paid', p.payment_date = CURDATE(), p.penalty = 0 WHERE c.id = ? AND p.status <> 'Paid' AND p.month_covered >= DATE_FORMAT(c.start_date, '%Y-%m-01') AND p.month_covered < DATE_FORMAT(c.end_date, '%Y-%m-01')");
+            if (!$payStatement) {
+                throw new RuntimeException(mysqli_error($conn));
+            }
+            mysqli_stmt_bind_param($payStatement, 'i', $contractId);
+            if (!mysqli_stmt_execute($payStatement)) {
+                throw new RuntimeException(mysqli_stmt_error($payStatement));
+            }
+            $paidRows = mysqli_stmt_affected_rows($payStatement);
+            mysqli_stmt_close($payStatement);
+            mysqli_commit($conn);
+            $successMessage = $paidRows . ' monthly payment(s) marked as paid.';
+        } catch (Throwable $exception) {
+            mysqli_rollback($conn);
+            $errorMessage = $exception->getMessage();
+        }
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_contract'])) {
     if (($_SESSION['role'] ?? '') !== 'Administrator') {
         http_response_code(403);
@@ -314,8 +379,8 @@ if ($contractResult) {
         .extend-form button { border: 0; border-radius: 6px; padding: 8px 11px; background: #2d6a9f; color: white; cursor: pointer; font: 500 12px 'Poppins', sans-serif; }
         .extend-form button:hover { background: #1a4f7a; }
         .contract-actions { display: grid; gap: 7px; }
-        .pay-contract { display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 8px 11px; border-radius: 6px; background: #e8f5e9; color: #2e7d32; text-decoration: none; font-size: 12px; font-weight: 600; }
-        .pay-contract:hover { background: #c8e6c9; }
+        .pay-full-contract { background: #dff4f1 !important; color: #087f73 !important; }
+        .pay-full-contract:hover { background: #bde8e2 !important; }
         .contract-actions .edit-contract { background: #eef5fb; color: #245b87; }
         .contract-actions .undo-contract { background: #fff3e0; color: #a45100; }
         .contract-actions .edit-contract:hover { background: #dcecf8; }
@@ -374,7 +439,6 @@ if ($contractResult) {
                                     <td>
                                         <?php if (in_array($_SESSION['role'] ?? '', ['Administrator', 'Treasury'], true) && $contract['status'] !== 'Terminated'): ?>
                                             <div class="contract-actions">
-                                                <a class="pay-contract" href="pay-rent.php?stall=<?php echo intval($contract['stall_id']); ?>"><i class="fa-solid fa-money-bill-wave"></i> Pay Rent</a>
                                                 <form method="POST" class="extend-form">
                                                     <input type="hidden" name="contract_id" value="<?php echo intval($contract['id']); ?>">
                                                     <select name="months" aria-label="Extension period">
@@ -384,6 +448,10 @@ if ($contractResult) {
                                                         <option value="12" selected>+1 year</option>
                                                     </select>
                                                     <button type="submit" name="extend_contract"><i class="fa-solid fa-calendar-plus"></i> Extend</button>
+                                                </form>
+                                                <form method="POST" class="extend-form" onsubmit="return confirm('Mark all unpaid monthly payments in this contract as paid?');">
+                                                    <input type="hidden" name="contract_id" value="<?php echo intval($contract['id']); ?>">
+                                                    <button type="submit" name="pay_contract" class="pay-full-contract"><i class="fa-solid fa-money-check-dollar"></i> Pay Full Contract</button>
                                                 </form>
                                                 <form method="POST" class="extend-form" onsubmit="return confirm('Undo the most recent extension and delete all unpaid or overdue rent records for this contract? Paid records will not be deleted.');">
                                                     <input type="hidden" name="contract_id" value="<?php echo intval($contract['id']); ?>">

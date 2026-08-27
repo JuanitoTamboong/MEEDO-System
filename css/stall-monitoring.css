@@ -133,6 +133,17 @@
     transform: translateY(-2px);
 }
 
+.contract-payment-summary {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    color: #2e7d32;
+}
+
+.contract-payment-summary span {
+    color: #c62828;
+}
+
 .filters-container {
     display: flex;
     gap: 20px;
