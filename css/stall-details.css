@@ -35,6 +35,33 @@
     flex-wrap: wrap;
 }
 
+/* Payment confirmation */
+.alert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 14px 18px;
+    margin: -10px 0 25px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+    box-sizing: border-box;
+}
+
+.alert i {
+    flex: 0 0 auto;
+    font-size: 18px;
+}
+
+.alert-success {
+    color: #176b3a;
+    background: #edf9f1;
+    border-color: #b8e3c7;
+}
+
 .btn-back {
     display: flex;
     align-items: center;
