@@ -127,7 +127,7 @@ try {
 }
 
 try {
-    $result = mysqli_query($conn, "SELECT COUNT(*) as count FROM payments WHERE status = 'Paid'");
+    $result = mysqli_query($conn, "SELECT COUNT(DISTINCT stall_id) as count FROM payments WHERE status = 'Paid' AND month_covered = DATE_FORMAT(CURDATE(), '%Y-%m-01')");
     if ($result) {
         $row = mysqli_fetch_assoc($result);
         $paidCount = $row['count'] ?? 0;
@@ -137,7 +137,7 @@ try {
 }
 
 try {
-    $result = mysqli_query($conn, "SELECT COUNT(*) as count FROM payments WHERE status = 'Pending'");
+    $result = mysqli_query($conn, "SELECT COUNT(DISTINCT stall_id) as count FROM payments WHERE status = 'Pending' AND month_covered = DATE_FORMAT(CURDATE(), '%Y-%m-01')");
     if ($result) {
         $row = mysqli_fetch_assoc($result);
         $unpaidCount = $row['count'] ?? 0;
@@ -147,7 +147,7 @@ try {
 }
 
 try {
-    $result = mysqli_query($conn, "SELECT COUNT(*) as count FROM payments WHERE status = 'Overdue'");
+    $result = mysqli_query($conn, "SELECT COUNT(DISTINCT stall_id) as count FROM payments WHERE status = 'Overdue' AND month_covered = DATE_FORMAT(CURDATE(), '%Y-%m-01')");
     if ($result) {
         $row = mysqli_fetch_assoc($result);
         $overdueCount = $row['count'] ?? 0;

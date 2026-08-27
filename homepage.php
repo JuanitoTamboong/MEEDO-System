@@ -34,11 +34,10 @@ try {
     }
 
     $result = mysqli_query($conn, "SELECT
-        SUM(status = 'Paid') AS paid,
-        SUM(status = 'Overdue') AS overdue
+        COUNT(DISTINCT CASE WHEN status = 'Paid' THEN stall_id END) AS paid,
+        COUNT(DISTINCT CASE WHEN status = 'Overdue' THEN stall_id END) AS overdue
         FROM payments
-        WHERE MONTH(COALESCE(payment_date, due_date)) = MONTH(CURDATE())
-        AND YEAR(COALESCE(payment_date, due_date)) = YEAR(CURDATE())");
+        WHERE month_covered = DATE_FORMAT(CURDATE(), '%Y-%m-01')");
     if ($result) {
         $overview = array_merge($overview, mysqli_fetch_assoc($result) ?: []);
     }

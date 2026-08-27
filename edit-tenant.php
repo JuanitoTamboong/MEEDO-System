@@ -58,6 +58,19 @@ if (isset($_POST['save_tenant'])) {
     if (empty($full_name) || empty($contact_number) || $stall_id <= 0 || empty($business_name)) {
         $error_message = 'Please fill in all required fields.';
     } else {
+        $duplicateTenant = mysqli_prepare($conn, "SELECT id FROM tenants WHERE LOWER(TRIM(full_name)) = LOWER(TRIM(?)) AND status = 'active' AND id <> ? LIMIT 1");
+        $duplicateTenant->bind_param('si', $full_name, $tenantId);
+        $duplicateTenant->execute();
+        $duplicateResult = $duplicateTenant->get_result();
+        $duplicateTenant->close();
+
+        if ($duplicateResult && $duplicateResult->num_rows > 0) {
+            $error_message = 'An active tenant with this name already exists.';
+        }
+
+        if (!empty($error_message)) {
+            // Leave the existing tenant unchanged when the name is already in use.
+        } else {
         $dobSql = !empty($date_of_birth) ? $date_of_birth : null;
 
         if ($dobSql === null) {
@@ -109,6 +122,7 @@ if (isset($_POST['save_tenant'])) {
                 $selectedStallRow = mysqli_fetch_assoc($selectedStall);
                 $currentStallNumber = $selectedStallRow['stall_number'];
             }
+        }
         }
     }
 }

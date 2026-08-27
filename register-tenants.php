@@ -96,6 +96,19 @@ if (isset($_POST['register_tenant'])) {
         if (empty($full_name) || empty($contact_number) || empty($stall_id) || empty($business_name)) {
             $error_message = "Please fill in all required fields.";
         } else {
+            $duplicateTenant = mysqli_prepare($conn, "SELECT id FROM tenants WHERE LOWER(TRIM(full_name)) = LOWER(TRIM(?)) AND status = 'active' LIMIT 1");
+            mysqli_stmt_bind_param($duplicateTenant, 's', $full_name);
+            mysqli_stmt_execute($duplicateTenant);
+            $duplicateResult = mysqli_stmt_get_result($duplicateTenant);
+            mysqli_stmt_close($duplicateTenant);
+
+            if ($duplicateResult && mysqli_num_rows($duplicateResult) > 0) {
+                $error_message = "An active tenant with this name already exists.";
+            }
+
+            if (!empty($error_message)) {
+                // Keep the registration form visible so the duplicate can be corrected.
+            } else {
             $stall_query = mysqli_query($conn, "SELECT stall_number, monthly_rent FROM stalls WHERE id = $stall_id");
             $stall_data = mysqli_fetch_assoc($stall_query);
             $monthly_rent = $stall_data['monthly_rent'] ?? 0;
@@ -126,6 +139,7 @@ if (isset($_POST['register_tenant'])) {
                 echo '<meta http-equiv="refresh" content="2">';
             } else {
                 $error_message = "Database Error: " . mysqli_error($conn);
+            }
             }
         }
     }
