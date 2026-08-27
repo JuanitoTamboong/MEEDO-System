@@ -1,3 +1,10 @@
+<?php
+// Global auth guard for all pages that include this sidebar.
+require_once __DIR__ . '/auth.php';
+require_login();
+$userRole = $_SESSION['role'] ?? '';
+?>
+
 <div class="sidebar">
 
     <div class="logo">
@@ -20,19 +27,21 @@
             </a>
         </li>
 
-        <li class="<?= isset($activePage) && $activePage === 'manage_stalls' ? 'active' : '' ?>">
-            <a href="manage-stalls.php">
-                <i class="fa-solid fa-store"></i>
-                Manage Stalls
-            </a>
-        </li>
+        <?php if ($userRole === 'Administrator'): ?>
+            <li class="<?= isset($activePage) && $activePage === 'manage_stalls' ? 'active' : '' ?>">
+                <a href="manage-stalls.php">
+                    <i class="fa-solid fa-store"></i>
+                    Manage Stalls
+                </a>
+            </li>
 
-        <li class="<?= isset($activePage) && $activePage === 'register_tenant' ? 'active' : '' ?>">
-            <a href="register-tenants.php">
-                <i class="fa-regular fa-user"></i>
-                Register Tenant
-            </a>
-        </li>
+            <li class="<?= isset($activePage) && $activePage === 'register_tenant' ? 'active' : '' ?>">
+                <a href="register-tenants.php">
+                    <i class="fa-regular fa-user"></i>
+                    Register Tenant
+                </a>
+            </li>
+        <?php endif; ?>
 
         <li class="<?= isset($activePage) && $activePage === 'financial_reports' ? 'active' : '' ?>">
             <a href="financial-reports.php">
@@ -45,7 +54,7 @@
     <div class="admin">
         <i class="fa-solid fa-user"></i>
         <div>
-            <h4>Market Administrator</h4>
+            <h4><?php echo htmlspecialchars($userRole); ?></h4>
             <span><?php
                 date_default_timezone_set("Asia/Manila");
                 echo date("h:i A");
@@ -59,13 +68,6 @@
     </button>
 
 </div>
-
-<?php
-// Global auth guard for all pages that include this sidebar.
-// (Prevents direct access without login)
-require_once __DIR__ . '/auth.php';
-require_login();
-?>
 
 <!-- Custom Confirmation Modal -->
 <div id="logoutModal" class="logout-modal" style="display: none;">
