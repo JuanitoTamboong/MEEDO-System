@@ -275,6 +275,11 @@ tbody tr:last-child td {
     color: #2e7d32;
 }
 
+.payment-badge.available {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
 .payment-badge.pending {
     background: #fff3e0;
     color: #e65100;

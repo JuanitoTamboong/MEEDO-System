@@ -5,11 +5,13 @@ require_login();
 
 $activePage = 'stall_monitoring';
 include 'includes/database.php';
+require_once __DIR__ . '/includes/audit-log.php';
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 date_default_timezone_set("Asia/Manila");
+ensure_audit_logs_table($conn);
 
 // Get stall id from URL
 $stallId = isset($_GET['stall']) ? intval($_GET['stall']) : 0;
@@ -95,6 +97,10 @@ Please settle your payment at the market office before the due date to avoid pen
 Thank you for your continued support!
 
 - MEEDO Management";
+
+if (in_array($_SESSION['role'] ?? '', ['Administrator', 'Treasury'], true)) {
+    record_audit_log($conn, 'Prepare Reminder', "Prepared a payment reminder for stall '{$stallNumber}'.", 'Stall', $stallId);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

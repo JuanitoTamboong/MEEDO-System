@@ -245,6 +245,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Stall Monitoring - MEEDO</title>
     <link rel="stylesheet" href="css/homepage.css">
+    <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="css/stall-monitoring.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -385,10 +386,12 @@ try {
                                 <?php foreach ($stalls as $stall): 
                                     $statusClass = strtolower($stall['status'] ?? 'vacant');
                                     $hasTenant = !empty($stall['tenant_name']);
-                                    $paymentStatus = $stall['payment_status'] ?? 'Pending';
+                                    $paymentStatus = $hasTenant && ($stall['status'] ?? '') === 'Occupied'
+                                        ? ($stall['payment_status'] ?? 'Pending')
+                                        : 'Available';
                                     
-                                    $paymentClass = 'pending';
-                                    $paymentIcon = 'fa-clock';
+                                    $paymentClass = $paymentStatus === 'Available' ? 'available' : 'pending';
+                                    $paymentIcon = $paymentStatus === 'Available' ? 'fa-check-circle' : 'fa-clock';
                                     if ($paymentStatus == 'Paid') {
                                         $paymentClass = 'paid';
                                         $paymentIcon = 'fa-check-circle';

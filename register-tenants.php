@@ -3,6 +3,8 @@ $activePage = 'register_tenant';
 include 'includes/database.php';
 require_once __DIR__ . '/includes/auth.php';
 require_role('Administrator');
+require_once __DIR__ . '/includes/audit-log.php';
+ensure_audit_logs_table($conn);
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -37,7 +39,7 @@ $stallAvailable = 0;
 $table_check = mysqli_query($conn, "SHOW TABLES LIKE 'tenants'");
 if ($table_check && mysqli_num_rows($table_check) > 0) {
     try {
-        $result = mysqli_query($conn, "SELECT COUNT(*) as count FROM tenants");
+        $result = mysqli_query($conn, "SELECT COUNT(*) as count FROM tenants WHERE status = 'active'");
         if ($result) {
             $row = mysqli_fetch_assoc($result);
             $totalTenants = $row['count'] ?? 0;
@@ -47,7 +49,7 @@ if ($table_check && mysqli_num_rows($table_check) > 0) {
     }
 
     try {
-        $result = mysqli_query($conn, "SELECT COUNT(*) as count FROM tenants WHERE MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())");
+        $result = mysqli_query($conn, "SELECT COUNT(*) as count FROM tenants WHERE status = 'active' AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())");
         if ($result) {
             $row = mysqli_fetch_assoc($result);
             $newThisMonth = $row['count'] ?? 0;
@@ -135,6 +137,7 @@ if (isset($_POST['register_tenant'])) {
                                         VALUES ($stall_id, '$full_name', $monthly_rent, NULL, '$nextMonth', '$nextMonth', 'Pending')";
                 mysqli_query($conn, $insert_next_payment);
                 
+                record_audit_log($conn, 'Register Tenant', "Registered tenant '{$full_name}' to stall '{$stall_number}'.", 'Tenant', $tenant_id);
                 $success_message = "Tenant registered successfully! Payment recorded for this month.";
                 echo '<meta http-equiv="refresh" content="2">';
             } else {

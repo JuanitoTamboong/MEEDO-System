@@ -5,10 +5,12 @@ require_login();
 
 $activePage = 'stall_monitoring';
 include 'includes/database.php';
+require_once __DIR__ . '/includes/audit-log.php';
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 date_default_timezone_set('Asia/Manila');
+ensure_audit_logs_table($conn);
 
 $stallId = isset($_GET['stall']) ? intval($_GET['stall']) : intval($_POST['stall_id'] ?? 0);
 if ($stallId <= 0) {
@@ -79,6 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['record_payment'])) {
             }
 
             mysqli_commit($conn);
+            record_audit_log($conn, 'Record Rent Payment', "Recorded rent payment of ₱" . number_format($amount, 2) . " for stall '{$stall['stall_number']}'.", 'Payment', $paymentId);
             header('Location: stall-details.php?stall=' . urlencode($stall['stall_number']) . '&payment=success');
             exit;
         } catch (Throwable $exception) {
@@ -132,6 +135,7 @@ if (!$payment) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Record Rent Payment - MEEDO</title>
     <link rel="stylesheet" href="css/homepage.css">
+    <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="css/stall-details.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">

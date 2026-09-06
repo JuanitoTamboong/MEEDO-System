@@ -3,6 +3,8 @@ $activePage = 'register_tenant';
 include 'includes/database.php';
 require_once __DIR__ . '/includes/auth.php';
 require_role('Administrator');
+require_once __DIR__ . '/includes/audit-log.php';
+ensure_audit_logs_table($conn);
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -117,6 +119,7 @@ if (isset($_POST['save_tenant'])) {
             }
 
             $success_message = 'Tenant updated successfully.';
+            record_audit_log($conn, 'Edit Tenant', "Updated tenant '{$full_name}' and assigned stall #{$stall_id}.", 'Tenant', $tenantId);
             $selectedStall = mysqli_query($conn, "SELECT stall_number FROM stalls WHERE id = {$stall_id} LIMIT 1");
             if ($selectedStall && mysqli_num_rows($selectedStall) > 0) {
                 $selectedStallRow = mysqli_fetch_assoc($selectedStall);
@@ -134,6 +137,7 @@ if (isset($_POST['save_tenant'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Edit Tenant - MEEDO</title>
     <link rel="stylesheet" href="css/homepage.css">
+    <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="css/register-tenants.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">

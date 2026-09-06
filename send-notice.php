@@ -5,11 +5,13 @@ require_login();
 
 $activePage = 'stall_monitoring';
 include 'includes/database.php';
+require_once __DIR__ . '/includes/audit-log.php';
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 date_default_timezone_set("Asia/Manila");
+ensure_audit_logs_table($conn);
 
 // Get payment id from URL
 $paymentId = isset($_GET['payment']) ? intval($_GET['payment']) : 0;
@@ -78,6 +80,10 @@ Please settle your account immediately at the market office to avoid further pen
 Thank you for your prompt attention to this matter.
 
 - MEEDO Management";
+
+if (in_array($_SESSION['role'] ?? '', ['Administrator', 'Treasury'], true)) {
+    record_audit_log($conn, 'Prepare Overdue Notice', "Prepared an overdue notice for stall '{$stallNumber}'.", 'Payment', $paymentId);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

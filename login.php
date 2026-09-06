@@ -3,6 +3,9 @@ session_start();
 
 include "includes/database.php";
 require_once __DIR__ . "/includes/login-utils.php";
+require_once __DIR__ . "/includes/audit-log.php";
+
+ensure_audit_logs_table($conn);
 
 if (isset($_POST['login'])) {
 
@@ -49,6 +52,9 @@ if (isset($_POST['login'])) {
             $_SESSION['id'] = $row['id'];
             $_SESSION['username'] = $row['username'];
             $_SESSION['role'] = $row['role'];
+            if (in_array($row['role'], ['Administrator', 'Treasury'], true)) {
+                record_audit_log($conn, 'Login', 'User signed in.', 'User', (int) $row['id']);
+            }
 
             header("Location: homepage.php");
             exit();

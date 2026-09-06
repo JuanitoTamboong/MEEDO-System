@@ -3,6 +3,8 @@ $activePage = 'manage_stalls';
 include 'includes/database.php';
 require_once __DIR__ . '/includes/auth.php';
 require_role('Administrator');
+require_once __DIR__ . '/includes/audit-log.php';
+ensure_audit_logs_table($conn);
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -45,6 +47,7 @@ if (isset($_POST['add_section'])) {
                    VALUES ('$section_name', '$icon_class', $display_order)";
         
         if (mysqli_query($conn, $insert)) {
+            record_audit_log($conn, 'Add Section', "Added market section '{$section_name}'.", 'Section', (int) mysqli_insert_id($conn));
             $success_message = "Section added successfully!";
             echo '<meta http-equiv="refresh" content="1">';
         } else {
@@ -70,6 +73,7 @@ if (isset($_GET['move_section'])) {
         mysqli_query($conn, "UPDATE sections SET display_order = $current_order WHERE display_order = $new_order");
         mysqli_query($conn, "UPDATE sections SET display_order = $new_order WHERE id = $id");
     }
+    record_audit_log($conn, 'Move Section', "Moved section #{$id} {$direction}.", 'Section', $id);
     
     header("Location: manage-stalls.php");
     exit;
@@ -107,6 +111,7 @@ if (isset($_POST['add_stall'])) {
                VALUES ('$stall_number', $section_id, 'Vacant', $monthly_rent)";
     
     if (mysqli_query($conn, $insert)) {
+        record_audit_log($conn, 'Add Stall', "Added vacant stall '{$stall_number}'.", 'Stall', (int) mysqli_insert_id($conn));
         $success_message = "Stall '$stall_number' added successfully!";
         echo '<meta http-equiv="refresh" content="1">';
     } else {
@@ -134,6 +139,7 @@ if (isset($_POST['edit_stall'])) {
             mysqli_stmt_execute($update_payments);
             mysqli_stmt_close($update_payments);
 
+            record_audit_log($conn, 'Edit Stall Rent', "Updated monthly rent for stall #{$stall_id} to ₱" . number_format($monthly_rent, 2) . '.', 'Stall', $stall_id);
             $success_message = 'Monthly rent updated successfully.';
         } else {
             mysqli_stmt_close($update_stall);
@@ -147,6 +153,7 @@ if (isset($_GET['delete_section'])) {
     $id = intval($_GET['delete_section']);
     mysqli_query($conn, "DELETE FROM stalls WHERE section_id = $id");
     mysqli_query($conn, "DELETE FROM sections WHERE id = $id");
+    record_audit_log($conn, 'Delete Section', "Deleted section #{$id} and its stalls.", 'Section', $id);
     header("Location: manage-stalls.php");
     exit;
 }
@@ -155,6 +162,7 @@ if (isset($_GET['delete_section'])) {
 if (isset($_GET['delete_stall'])) {
     $id = intval($_GET['delete_stall']);
     mysqli_query($conn, "DELETE FROM stalls WHERE id = $id");
+    record_audit_log($conn, 'Delete Stall', "Deleted stall #{$id}.", 'Stall', $id);
     header("Location: manage-stalls.php");
     exit;
 }

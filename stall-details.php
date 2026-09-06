@@ -97,6 +97,7 @@ $query = "SELECT * FROM payments WHERE stall_id = " . $stall['id'] . "
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Stall Details - MEEDO</title>
     <link rel="stylesheet" href="css/homepage.css">
+    <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="css/stall-details.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -363,7 +364,7 @@ $query = "SELECT * FROM payments WHERE stall_id = " . $stall['id'] . "
 
     <script>
         function assignTenant(stallNumber) {
-            window.location.href = 'register-tenant.php?stall=' + stallNumber;
+            window.location.href = 'register-tenants.php?stall=' + encodeURIComponent(stallNumber);
         }
 
         function editTenant(tenantId) {
