@@ -49,7 +49,7 @@ mysqli_query($conn, "DELETE p FROM payments p INNER JOIN contracts c ON c.stall_
 
 $activeTenants = mysqli_query($conn, "SELECT t.id, t.stall_id, DATE(t.created_at) AS start_date FROM tenants t LEFT JOIN contracts c ON c.tenant_id = t.id AND c.stall_id = t.stall_id WHERE t.status = 'active' AND t.stall_id IS NOT NULL AND c.id IS NULL");
 if ($activeTenants) {
-    $insertContract = mysqli_prepare($conn, "INSERT IGNORE INTO contracts (tenant_id, stall_id, start_date, end_date, status) VALUES (?, ?, ?, DATE_ADD(?, INTERVAL 1 YEAR), 'Active')");
+    $insertContract = mysqli_prepare($conn, "INSERT IGNORE INTO contracts (tenant_id, stall_id, start_date, end_date, status) VALUES (?, ?, ?, DATE_ADD(?, INTERVAL 1 MONTH), 'Active')");
     while ($tenantRow = mysqli_fetch_assoc($activeTenants)) {
         mysqli_stmt_bind_param($insertContract, 'iiss', $tenantRow['id'], $tenantRow['stall_id'], $tenantRow['start_date'], $tenantRow['start_date']);
         mysqli_stmt_execute($insertContract);
@@ -58,9 +58,9 @@ if ($activeTenants) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['extend_contract'])) {
-    if (($_SESSION['role'] ?? '') !== 'Administrator') {
+    if (!in_array($_SESSION['role'] ?? '', ['Administrator', 'Meedo Personnel'], true)) {
         http_response_code(403);
-        exit('Only an Administrator can extend contracts.');
+        exit('Only an Administrator or Meedo Personnel user can extend contracts.');
     }
 
     $contractId = intval($_POST['contract_id'] ?? 0);
@@ -174,7 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pay_contract'])) {
             $paymentStallId = (int) $contract['stall_id'];
             $paymentTenantName = $contract['full_name'];
             $paymentAmount = (float) $contract['monthly_rent'];
-            $paymentMonth = new DateTimeImmutable($contract['start_date']);
+            $paymentMonth = (new DateTimeImmutable($contract['start_date']))->modify('first day of this month');
             $paymentEnd = new DateTimeImmutable($contract['end_date']);
             $paymentLastMonth = $paymentEnd->modify('first day of this month');
 
@@ -209,9 +209,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pay_contract'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_contract'])) {
-    if (($_SESSION['role'] ?? '') !== 'Administrator') {
+    if (!in_array($_SESSION['role'] ?? '', ['Administrator', 'Meedo Personnel'], true)) {
         http_response_code(403);
-        exit('Only an Administrator can edit contracts.');
+        exit('Only an Administrator or Meedo Personnel user can edit contracts.');
     }
 
     $contractId = intval($_POST['contract_id'] ?? 0);
@@ -257,31 +257,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_contract'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['undo_extension'])) {
     if (!in_array($_SESSION['role'] ?? '', ['Administrator', 'Meedo Personnel', 'Treasury'], true)) {
         http_response_code(403);
-        exit('Only an Administrator or Treasury user can undo extensions.');
+        exit('Only an Administrator, Meedo Personnel, or Treasury user can undo extensions.');
     }
 
     $contractId = intval($_POST['contract_id'] ?? 0);
     mysqli_begin_transaction($conn);
     try {
-        $historyStatement = mysqli_prepare($conn, "SELECT id, previous_end_date FROM contract_extensions WHERE contract_id = ? ORDER BY id DESC LIMIT 1 FOR UPDATE");
+        $historyStatement = mysqli_prepare($conn, "SELECT e.id, e.previous_end_date, c.end_date AS current_end_date FROM contract_extensions e INNER JOIN contracts c ON c.id = e.contract_id WHERE e.contract_id = ? ORDER BY e.id DESC LIMIT 1 FOR UPDATE");
         mysqli_stmt_bind_param($historyStatement, 'i', $contractId);
         mysqli_stmt_execute($historyStatement);
         $history = mysqli_fetch_assoc(mysqli_stmt_get_result($historyStatement));
         mysqli_stmt_close($historyStatement);
         if (!$history) {
-            $paidMonthStatement = mysqli_prepare($conn, "SELECT MAX(p.month_covered) AS latest_paid_month FROM payments p INNER JOIN contracts c ON c.stall_id = p.stall_id WHERE c.id = ? AND p.status = 'Paid'");
-            if (!$paidMonthStatement) {
-                throw new RuntimeException(mysqli_error($conn));
-            }
-            mysqli_stmt_bind_param($paidMonthStatement, 'i', $contractId);
-            mysqli_stmt_execute($paidMonthStatement);
-            $paidMonth = mysqli_fetch_assoc(mysqli_stmt_get_result($paidMonthStatement));
-            mysqli_stmt_close($paidMonthStatement);
-
-            $restorePoint = !empty($paidMonth['latest_paid_month'])
-                ? date('Y-m-01', strtotime($paidMonth['latest_paid_month'] . ' +1 month'))
-                : date('Y-m-01');
-            $history = ['previous_end_date' => $restorePoint];
+            throw new RuntimeException('No contract extension is available to undo.');
         }
 
         $restoreEnd = $history['previous_end_date'];
@@ -295,11 +283,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['undo_extension'])) {
         }
         mysqli_stmt_close($restoreContract);
 
-        $removePayments = mysqli_prepare($conn, "DELETE p FROM payments p INNER JOIN contracts c ON c.stall_id = p.stall_id WHERE c.id = ? AND p.status <> 'Paid'");
+        $removePayments = mysqli_prepare($conn, "DELETE p FROM payments p INNER JOIN contracts c ON c.stall_id = p.stall_id WHERE c.id = ? AND p.month_covered >= DATE_FORMAT(?, '%Y-%m-01') AND p.month_covered < DATE_FORMAT(?, '%Y-%m-01')");
         if (!$removePayments) {
             throw new RuntimeException(mysqli_error($conn));
         }
-        mysqli_stmt_bind_param($removePayments, 'i', $contractId);
+        mysqli_stmt_bind_param($removePayments, 'iss', $contractId, $restoreEnd, $history['current_end_date']);
         if (!mysqli_stmt_execute($removePayments)) {
             throw new RuntimeException(mysqli_stmt_error($removePayments));
         }
