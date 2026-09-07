@@ -65,9 +65,8 @@
   - `includes/database.php` — database connection
   - `includes/auth.php` — session guard (`require_login()`)
   - `includes/login-utils.php`
-- **SQL reference scripts**
-  - `sql-inuse/table.txt` — schema for `sections`, `stalls`, `tenants`, `login`
-  - `sql-inuse/account.txt` — seed login accounts
+- **Database setup**
+  - `database/meedo_system.sql` — complete schema and seed login accounts
 
 ---
 
@@ -81,23 +80,7 @@
 
 ## 🗄️ Database Setup (MySQL)
 
-### 1) Create the database
-The application connects to database name:
-- `meedo_system`
-
-### 2) Create tables
-Use:
-- `sql-inuse/table.txt`
-
-This creates:
-- `sections`
-- `stalls`
-- `tenants`
-- `login` (schema is in `sql-inuse/table.txt` and/or `sql-inuse/table.txt`)
-
-### 3) Seed user accounts
-Use:
-- `sql-inuse/account.txt`
+Import `database/meedo_system.sql` in phpMyAdmin or the MySQL client. It creates the `meedo_system` database, all application tables, indexes, foreign keys, and the initial user accounts.
 
 Seeded accounts:
 
@@ -106,8 +89,7 @@ Seeded accounts:
 | `admin` | `admin123` | `Administrator` |
 | `treasury` | `treasury123` | `Treasury` |
 
-### 4) Notes about `payments`
-`payments` may be created at runtime by `stall-monitoring.php` (it includes a `CREATE TABLE IF NOT EXISTS payments ...`).
+The SQL file is the single source of truth for the database schema. Runtime checks in the PHP pages are kept as compatibility safeguards for existing installations.
 
 ---
 
