@@ -26,6 +26,7 @@
                 <select name="role" required>
                     <option value="">Select Role</option>
                     <option value="Administrator">Administrator</option>
+                    <option value="Meedo Personnel">Meedo Personnel</option>
                     <option value="Treasury">Treasury</option>
                 </select>
             </div>

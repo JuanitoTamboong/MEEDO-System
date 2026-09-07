@@ -143,7 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['extend_contract'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pay_contract'])) {
-    if (!in_array($_SESSION['role'] ?? '', ['Administrator', 'Treasury'], true)) {
+    if (!in_array($_SESSION['role'] ?? '', ['Administrator', 'Meedo Personnel', 'Treasury'], true)) {
         http_response_code(403);
         exit('Only an Administrator or Treasury user can record contract payments.');
     }
@@ -255,7 +255,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_contract'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['undo_extension'])) {
-    if (!in_array($_SESSION['role'] ?? '', ['Administrator', 'Treasury'], true)) {
+    if (!in_array($_SESSION['role'] ?? '', ['Administrator', 'Meedo Personnel', 'Treasury'], true)) {
         http_response_code(403);
         exit('Only an Administrator or Treasury user can undo extensions.');
     }
@@ -957,7 +957,7 @@ foreach ($contracts as $contract) {
 
                             <!-- Actions -->
                             <div class="actions">
-                                <?php if (in_array($_SESSION['role'] ?? '', ['Administrator', 'Treasury'], true) && $contract['status'] !== 'Terminated'): ?>
+                                <?php if (in_array($_SESSION['role'] ?? '', ['Administrator', 'Meedo Personnel', 'Treasury'], true) && $contract['status'] !== 'Terminated'): ?>
                                     <!-- Extend -->
                                     <form method="POST" class="extend-form">
                                         <input type="hidden" name="contract_id" value="<?php echo intval($contract['id']); ?>">

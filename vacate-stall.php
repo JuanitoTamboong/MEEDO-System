@@ -22,27 +22,33 @@ if (!$stallQuery || mysqli_num_rows($stallQuery) === 0) {
 
 $stall = mysqli_fetch_assoc($stallQuery);
 $stallId = intval($stall['id']);
-$tenantQuery = mysqli_query($conn, "SELECT id, full_name FROM tenants WHERE stall_id = {$stallId} ORDER BY created_at DESC LIMIT 1");
-$deletedTenantId = null;
-$deletedTenantName = '';
-if ($tenantQuery && mysqli_num_rows($tenantQuery) > 0) {
-    $tenant = mysqli_fetch_assoc($tenantQuery);
-    $tenantId = intval($tenant['id']);
-    $deletedTenantId = $tenantId;
-    $deletedTenantName = $tenant['full_name'];
-    if (!mysqli_query($conn, "DELETE FROM tenants WHERE id = {$tenantId} LIMIT 1")) {
-        exit('Unable to delete tenant: ' . htmlspecialchars(mysqli_error($conn)));
+$tenantQuery = mysqli_query($conn, "SELECT id, full_name FROM tenants WHERE stall_id = {$stallId} ORDER BY created_at DESC");
+$deletedTenants = [];
+if ($tenantQuery) {
+    while ($tenant = mysqli_fetch_assoc($tenantQuery)) {
+        $deletedTenants[] = [
+            'id' => (int) $tenant['id'],
+            'name' => $tenant['full_name'],
+        ];
     }
 }
 
-if ($stall['status'] !== 'Occupied' && $deletedTenantId === null) {
+if (!mysqli_query($conn, "DELETE FROM tenants WHERE stall_id = {$stallId}")) {
+    exit('Unable to delete tenant: ' . htmlspecialchars(mysqli_error($conn)));
+}
+
+if (!mysqli_query($conn, "DELETE FROM payments WHERE stall_id = {$stallId}")) {
+    exit('Unable to delete payment history: ' . htmlspecialchars(mysqli_error($conn)));
+}
+
+if ($stall['status'] !== 'Occupied' && empty($deletedTenants)) {
     header('Location: stall-details.php?stall=' . urlencode($stallNumber));
     exit;
 }
 
 mysqli_query($conn, "UPDATE stalls SET status = 'Vacant', tenant_name = '' WHERE id = {$stallId}");
-if ($deletedTenantId !== null) {
-    record_audit_log($conn, 'Delete Tenant', "Permanently deleted tenant '{$deletedTenantName}' from stall '{$stallNumber}'.", 'Tenant', $deletedTenantId);
+foreach ($deletedTenants as $deletedTenant) {
+    record_audit_log($conn, 'Delete Tenant', "Permanently deleted tenant '{$deletedTenant['name']}' from stall '{$stallNumber}'.", 'Tenant', $deletedTenant['id']);
 }
 record_audit_log($conn, 'Vacate Stall', "Vacated stall '{$stallNumber}'.", 'Stall', $stallId);
 header('Location: stall-details.php?stall=' . urlencode($stallNumber));

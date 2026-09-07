@@ -52,7 +52,7 @@ if (isset($_POST['login'])) {
             $_SESSION['id'] = $row['id'];
             $_SESSION['username'] = $row['username'];
             $_SESSION['role'] = $row['role'];
-            if (in_array($row['role'], ['Administrator', 'Treasury'], true)) {
+            if (in_array($row['role'], ['Administrator', 'Meedo Personnel', 'Treasury'], true)) {
                 record_audit_log($conn, 'Login', 'User signed in.', 'User', (int) $row['id']);
             }
 

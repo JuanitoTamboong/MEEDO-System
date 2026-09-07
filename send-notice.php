@@ -81,7 +81,7 @@ Thank you for your prompt attention to this matter.
 
 - MEEDO Management";
 
-if (in_array($_SESSION['role'] ?? '', ['Administrator', 'Treasury'], true)) {
+if (in_array($_SESSION['role'] ?? '', ['Administrator', 'Meedo Personnel', 'Treasury'], true)) {
     record_audit_log($conn, 'Prepare Overdue Notice', "Prepared an overdue notice for stall '{$stallNumber}'.", 'Payment', $paymentId);
 }
 ?>

@@ -15,10 +15,13 @@ CREATE TABLE IF NOT EXISTS login (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL,
     password VARCHAR(255) NOT NULL,
-    role ENUM('Administrator', 'Treasury') NOT NULL,
+    role ENUM('Administrator', 'Meedo Personnel', 'Treasury') NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY uq_login_username (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE login
+    MODIFY role ENUM('Administrator', 'Meedo Personnel', 'Treasury') NOT NULL;
 
 CREATE TABLE IF NOT EXISTS sections (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -140,6 +143,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 INSERT INTO login (username, password, role)
 VALUES
     ('admin', '$2y$10$.ahwmub1WGDt44dsT1Ddqe0y6dhWYIUXBDX.WLrP4XCnbv1Cg0FcC', 'Administrator'),
+    ('meedopersonnel', '$2y$10$kkBimm4GcWz575ahwk/qNe/L6lgya6vXpStrj7FM1MpqevFahKoBK', 'Meedo Personnel'),
     ('treasury', '$2y$10$BNxB09eLarkFe1hlKpurtekRczXFNA.kKThx6F3XQMYg5Io.kW7fO', 'Treasury')
 ON DUPLICATE KEY UPDATE
     password = VALUES(password),

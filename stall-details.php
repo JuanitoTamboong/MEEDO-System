@@ -320,7 +320,7 @@ $query = "SELECT * FROM payments WHERE stall_id = " . $stall['id'] . "
                                 <tbody>
                                     <?php foreach ($paymentHistory as $payment): ?>
                                         <tr>
-                                            <td><?php echo date("M d, Y", strtotime($payment['payment_date'])); ?></td>
+                                            <td><?php echo !empty($payment['payment_date']) ? date("M d, Y", strtotime($payment['payment_date'])) : '—'; ?></td>
                                             <td>₱<?php echo number_format($payment['amount'] ?? 0, 2); ?></td>
                                             <td><?php echo htmlspecialchars($payment['receipt_number'] ?? '—'); ?></td>
                                             <td><?php echo $payment['month_covered'] ? date("M Y", strtotime($payment['month_covered'])) : '—'; ?></td>

@@ -127,15 +127,10 @@ if (isset($_POST['register_tenant'])) {
                 
                 $today = date('Y-m-d');
                 $currentMonth = date('Y-m-01');
-                $nextMonth = date('Y-m-01', strtotime('+1 month'));
                 
                 $insert_payment = "INSERT INTO payments (stall_id, tenant_name, amount, payment_date, due_date, month_covered, status, receipt_number) 
                                    VALUES ($stall_id, '$full_name', $monthly_rent, '$today', '$currentMonth', '$currentMonth', 'Paid', 'REG-" . date('Ymd') . "-$tenant_id')";
                 mysqli_query($conn, $insert_payment);
-                
-                $insert_next_payment = "INSERT INTO payments (stall_id, tenant_name, amount, payment_date, due_date, month_covered, status) 
-                                        VALUES ($stall_id, '$full_name', $monthly_rent, NULL, '$nextMonth', '$nextMonth', 'Pending')";
-                mysqli_query($conn, $insert_next_payment);
                 
                 record_audit_log($conn, 'Register Tenant', "Registered tenant '{$full_name}' to stall '{$stall_number}'.", 'Tenant', $tenant_id);
                 $success_message = "Tenant registered successfully! Payment recorded for this month.";

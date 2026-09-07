@@ -4,7 +4,7 @@ require_once __DIR__ . '/includes/auth.php';
 require_login();
 $activePage = 'logs';
 
-if (!in_array($_SESSION['role'] ?? '', ['Administrator', 'Treasury'], true)) {
+if (!in_array($_SESSION['role'] ?? '', ['Administrator', 'Meedo Personnel', 'Treasury'], true)) {
     http_response_code(403);
     exit('Only Administrators and Treasury users can view activity logs.');
 }
@@ -15,7 +15,7 @@ ensure_audit_logs_table($conn);
 
 $roleFilter = $_GET['role'] ?? 'all';
 $actionFilter = trim($_GET['action'] ?? '');
-$allowedRoles = ['Administrator', 'Treasury'];
+$allowedRoles = ['Administrator', 'Meedo Personnel', 'Treasury'];
 if (!in_array($roleFilter, array_merge(['all'], $allowedRoles), true)) {
     $roleFilter = 'all';
 }

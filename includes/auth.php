@@ -16,7 +16,12 @@ function require_login(): void
 function require_role(string $role): void
 {
     require_login();
-    if (($_SESSION['role'] ?? '') !== $role) {
+    $currentRole = $_SESSION['role'] ?? '';
+    $hasRequiredRole = $role === 'Administrator'
+        ? in_array($currentRole, ['Administrator', 'Meedo Personnel'], true)
+        : $currentRole === $role;
+
+    if (!$hasRequiredRole) {
         header('Location: homepage.php');
         exit();
     }

@@ -32,7 +32,7 @@ $userRole = $_SESSION['role'] ?? '';
             </a>
         </li>
 
-        <?php if ($userRole === 'Administrator'): ?>
+        <?php if (in_array($userRole, ['Administrator', 'Meedo Personnel'], true)): ?>
             <li class="<?= isset($activePage) && $activePage === 'manage_stalls' ? 'active' : '' ?>">
                 <a href="manage-stalls.php">
                     <i class="fa-solid fa-store"></i>
@@ -62,7 +62,7 @@ $userRole = $_SESSION['role'] ?? '';
             </a>
         </li>
 
-        <?php if (in_array($userRole, ['Administrator', 'Treasury'], true)): ?>
+        <?php if (in_array($userRole, ['Administrator', 'Meedo Personnel', 'Treasury'], true)): ?>
             <li class="<?= isset($activePage) && $activePage === 'logs' ? 'active' : '' ?>">
                 <a href="logs.php">
                     <i class="fa-solid fa-clock-rotate-left"></i>
