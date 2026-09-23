@@ -48,7 +48,6 @@ if (isset($_POST['add_section'])) {
         if (mysqli_query($conn, $insert)) {
             record_audit_log($conn, 'Add Section', "Added market section '{$section_name}'.", 'Section', (int) mysqli_insert_id($conn));
             $success_message = "Section added successfully!";
-            echo '<meta http-equiv="refresh" content="1">';
         } else {
             $error_message = "Database Error: " . mysqli_error($conn);
         }
@@ -112,7 +111,6 @@ if (isset($_POST['add_stall'])) {
     if (mysqli_query($conn, $insert)) {
         record_audit_log($conn, 'Add Stall', "Added vacant stall '{$stall_number}'.", 'Stall', (int) mysqli_insert_id($conn));
         $success_message = "Stall '$stall_number' added successfully!";
-        echo '<meta http-equiv="refresh" content="1">';
     } else {
         $error_message = "Database Error: " . mysqli_error($conn);
     }
@@ -241,10 +239,10 @@ function getIconClass($icon_name) {
                 </div>
 
                 <?php if (isset($success_message)): ?>
-                    <div class="alert alert-success"><i class="fa-solid fa-check-circle"></i> <?php echo $success_message; ?></div>
+                    <div class="alert alert-success" id="pageNotice"><i class="fa-solid fa-check-circle"></i> <?php echo $success_message; ?></div>
                 <?php endif; ?>
                 <?php if (isset($error_message)): ?>
-                    <div class="alert alert-error"><i class="fa-solid fa-exclamation-circle"></i> <?php echo $error_message; ?></div>
+                    <div class="alert alert-error" id="pageNotice"><i class="fa-solid fa-exclamation-circle"></i> <?php echo $error_message; ?></div>
                 <?php endif; ?>
 
                 <form class="section-form" method="POST" action="">
@@ -500,6 +498,26 @@ function getIconClass($icon_name) {
     </div>
 
     <script>
+        // ===== Auto-fade the alert notice =====
+        (function () {
+            const noticeEl = document.getElementById('pageNotice');
+            if (noticeEl) {
+                setTimeout(function () {
+                    noticeEl.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                    noticeEl.style.opacity = '0';
+                    noticeEl.style.transform = 'translateY(-8px)';
+                    setTimeout(function () { noticeEl.remove(); }, 450);
+                }, 3000);
+            }
+
+            if (window.history.replaceState) {
+                const url = new URL(window.location.href);
+                ['msg', 'error', 'success', 'delete_stall', 'delete_section', 'move_section', 'direction', 'export']
+                    .forEach(function (p) { url.searchParams.delete(p); });
+                window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+            }
+        })();
+
         // ===== Search =====
         document.getElementById('searchStall').addEventListener('keyup', function() {
             let searchValue = this.value.toLowerCase();

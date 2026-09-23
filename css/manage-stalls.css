@@ -339,12 +339,14 @@ html, body {
     background: #218838;
 }
 
+/* ===== Alert banner ===== */
 .alert {
     padding: 12px 15px;
     border-radius: 8px;
     margin-bottom: 15px;
     font-weight: 500;
     width: 100%;
+    transition: opacity 0.4s ease, transform 0.4s ease; /* ✅ ADDED for auto-fade */
 }
 
 .alert-success {
