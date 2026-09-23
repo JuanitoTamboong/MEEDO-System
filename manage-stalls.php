@@ -9,7 +9,6 @@ ensure_audit_logs_table($conn);
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Comprehensive list of market icons
 $icon_list = [
     'Meat' => 'fa-drumstick-bite',
     'Fish' => 'fa-fish',
@@ -33,7 +32,7 @@ if (isset($_POST['add_section'])) {
     $section_name = trim($_POST['section_name']);
     $icon_class = trim($_POST['icon_class']);
     $display_order = intval($_POST['display_order']);
-    
+
     $check = mysqli_query($conn, "SELECT id FROM sections WHERE LOWER(section_name) = LOWER('$section_name')");
     if (mysqli_num_rows($check) > 0) {
         $error_message = "Section '$section_name' already exists!";
@@ -42,10 +41,10 @@ if (isset($_POST['add_section'])) {
     } else {
         $section_name = mysqli_real_escape_string($conn, $section_name);
         $icon_class = mysqli_real_escape_string($conn, $icon_class);
-        
+
         $insert = "INSERT INTO sections (section_name, icon_class, display_order) 
                    VALUES ('$section_name', '$icon_class', $display_order)";
-        
+
         if (mysqli_query($conn, $insert)) {
             record_audit_log($conn, 'Add Section', "Added market section '{$section_name}'.", 'Section', (int) mysqli_insert_id($conn));
             $success_message = "Section added successfully!";
@@ -60,10 +59,10 @@ if (isset($_POST['add_section'])) {
 if (isset($_GET['move_section'])) {
     $id = intval($_GET['move_section']);
     $direction = $_GET['direction'];
-    
+
     $current = mysqli_fetch_assoc(mysqli_query($conn, "SELECT display_order FROM sections WHERE id = $id"));
     $current_order = $current['display_order'];
-    
+
     if ($direction == 'up') {
         $new_order = $current_order - 1;
         mysqli_query($conn, "UPDATE sections SET display_order = $current_order WHERE display_order = $new_order");
@@ -74,7 +73,7 @@ if (isset($_GET['move_section'])) {
         mysqli_query($conn, "UPDATE sections SET display_order = $new_order WHERE id = $id");
     }
     record_audit_log($conn, 'Move Section', "Moved section #{$id} {$direction}.", 'Section', $id);
-    
+
     header("Location: manage-stalls.php");
     exit;
 }
@@ -83,21 +82,21 @@ if (isset($_GET['move_section'])) {
 if (isset($_POST['add_stall'])) {
     $section_id = intval($_POST['section_id']);
     $monthly_rent = floatval($_POST['monthly_rent']);
-    
+
     $section_query = mysqli_query($conn, "SELECT * FROM sections WHERE id = $section_id");
     $section = mysqli_fetch_assoc($section_query);
-    
+
     $prefix = 'S' . $section_id;
-    
+
     $existing_query = mysqli_query($conn, "SELECT stall_number FROM stalls WHERE section_id = $section_id");
     $existing_numbers = [];
     while ($row = mysqli_fetch_assoc($existing_query)) {
         $existing_numbers[] = $row['stall_number'];
     }
-    
+
     $next_number = 1;
     $stall_number = '';
-    
+
     while (true) {
         $test_number = $prefix . '-' . str_pad($next_number, 3, '0', STR_PAD_LEFT);
         if (!in_array($test_number, $existing_numbers)) {
@@ -106,10 +105,10 @@ if (isset($_POST['add_stall'])) {
         }
         $next_number++;
     }
-    
+
     $insert = "INSERT INTO stalls (stall_number, section_id, status, monthly_rent) 
                VALUES ('$stall_number', $section_id, 'Vacant', $monthly_rent)";
-    
+
     if (mysqli_query($conn, $insert)) {
         record_audit_log($conn, 'Add Stall', "Added vacant stall '{$stall_number}'.", 'Stall', (int) mysqli_insert_id($conn));
         $success_message = "Stall '$stall_number' added successfully!";
@@ -133,7 +132,6 @@ if (isset($_POST['edit_stall'])) {
         if (mysqli_stmt_execute($update_stall)) {
             mysqli_stmt_close($update_stall);
 
-            // Do not alter paid transactions; only future unpaid rent follows the new rate.
             $update_payments = mysqli_prepare($conn, "UPDATE payments SET amount = ? WHERE stall_id = ? AND status <> 'Paid' AND month_covered >= DATE_FORMAT(CURDATE(), '%Y-%m-01')");
             mysqli_stmt_bind_param($update_payments, 'di', $monthly_rent, $stall_id);
             mysqli_stmt_execute($update_payments);
@@ -167,49 +165,22 @@ if (isset($_GET['delete_stall'])) {
     exit;
 }
 
-// Function to get icon class
 function getIconClass($icon_name) {
     $icon_name = trim($icon_name);
-    
-    if (strpos($icon_name, 'fa-') === 0) {
-        return $icon_name;
-    }
-    
+    if (strpos($icon_name, 'fa-') === 0) return $icon_name;
+
     $icon_map = [
-        'meat' => 'fa-drumstick-bite',
-        'fish' => 'fa-fish',
-        'vegetables' => 'fa-leaf',
-        'fruits' => 'fa-apple-whole',
-        'eggs' => 'fa-egg',
-        'poultry' => 'fa-drumstick-bite',
-        'rice & grains' => 'fa-bowl-rice',
-        'rice' => 'fa-bowl-rice',
-        'grains' => 'fa-bowl-rice',
-        'grocery' => 'fa-store',
-        'bakery' => 'fa-bread-slice',
-        'spices & condiments' => 'fa-pepper',
-        'spices' => 'fa-pepper',
-        'condiments' => 'fa-pepper',
-        'seafood' => 'fa-fish',
-        'dry goods' => 'fa-box',
-        'drygoods' => 'fa-box',
-        'cooked foods' => 'fa-utensils',
-        'cooked' => 'fa-utensils',
-        'beverages' => 'fa-mug-saucer',
-        'beverage' => 'fa-mug-saucer',
-        'drinks' => 'fa-mug-saucer',
-        'household supplies' => 'fa-soap',
-        'household' => 'fa-soap',
+        'meat' => 'fa-drumstick-bite', 'fish' => 'fa-fish', 'vegetables' => 'fa-leaf',
+        'fruits' => 'fa-apple-whole', 'eggs' => 'fa-egg', 'poultry' => 'fa-drumstick-bite',
+        'rice & grains' => 'fa-bowl-rice', 'rice' => 'fa-bowl-rice', 'grains' => 'fa-bowl-rice',
+        'grocery' => 'fa-store', 'bakery' => 'fa-bread-slice', 'spices & condiments' => 'fa-pepper',
+        'spices' => 'fa-pepper', 'condiments' => 'fa-pepper', 'seafood' => 'fa-fish',
+        'dry goods' => 'fa-box', 'drygoods' => 'fa-box', 'cooked foods' => 'fa-utensils',
+        'cooked' => 'fa-utensils', 'beverages' => 'fa-mug-saucer', 'beverage' => 'fa-mug-saucer',
+        'drinks' => 'fa-mug-saucer', 'household supplies' => 'fa-soap', 'household' => 'fa-soap',
         'supplies' => 'fa-soap'
     ];
-    
-    $icon_name_lower = strtolower($icon_name);
-    
-    if (isset($icon_map[$icon_name_lower])) {
-        return $icon_map[$icon_name_lower];
-    }
-    
-    return 'fa-store';
+    return $icon_map[strtolower($icon_name)] ?? 'fa-store';
 }
 ?>
 <!DOCTYPE html>
@@ -234,13 +205,7 @@ function getIconClass($icon_name) {
             <div class="header">
                 <div>
                     <h1>Manage Stalls</h1>
-                    <p>
-                        <i class="fa-regular fa-calendar"></i>
-                        <?php
-                        date_default_timezone_set("Asia/Manila");
-                        echo date("l, F j, Y");
-                        ?>
-                    </p>
+                    <p><i class="fa-regular fa-calendar"></i> <?php date_default_timezone_set("Asia/Manila"); echo date("l, F j, Y"); ?></p>
                 </div>
                 <div class="header-actions">
                     <div class="search-box">
@@ -252,37 +217,17 @@ function getIconClass($icon_name) {
 
             <div class="stats-cards">
                 <div class="stat-card available">
-                    <div class="stat-icon">
-                        <i class="fa-solid fa-store"></i>
-                    </div>
+                    <div class="stat-icon"><i class="fa-solid fa-store"></i></div>
                     <div class="stat-info">
                         <h3>Available</h3>
-                        <p><?php 
-                            $result = mysqli_query($conn, "SELECT COUNT(*) as count FROM stalls WHERE status = 'Vacant'");
-                            if ($result && mysqli_num_rows($result) > 0) {
-                                $row = mysqli_fetch_assoc($result);
-                                echo $row ? $row['count'] : 0;
-                            } else {
-                                echo 0;
-                            }
-                        ?></p>
+                        <p><?php $result = mysqli_query($conn, "SELECT COUNT(*) as count FROM stalls WHERE status = 'Vacant'"); echo ($result && $row = mysqli_fetch_assoc($result)) ? $row['count'] : 0; ?></p>
                     </div>
                 </div>
                 <div class="stat-card occupied">
-                    <div class="stat-icon">
-                        <i class="fa-solid fa-users"></i>
-                    </div>
+                    <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
                     <div class="stat-info">
                         <h3>Occupied</h3>
-                        <p><?php 
-                            $result = mysqli_query($conn, "SELECT COUNT(*) as count FROM stalls WHERE status = 'Occupied'");
-                            if ($result && mysqli_num_rows($result) > 0) {
-                                $row = mysqli_fetch_assoc($result);
-                                echo $row ? $row['count'] : 0;
-                            } else {
-                                echo 0;
-                            }
-                        ?></p>
+                        <p><?php $result = mysqli_query($conn, "SELECT COUNT(*) as count FROM stalls WHERE status = 'Occupied'"); echo ($result && $row = mysqli_fetch_assoc($result)) ? $row['count'] : 0; ?></p>
                     </div>
                 </div>
             </div>
@@ -294,19 +239,14 @@ function getIconClass($icon_name) {
                         <i class="fa-solid fa-file-export"></i> Export
                     </button>
                 </div>
-                
+
                 <?php if (isset($success_message)): ?>
-                    <div class="alert alert-success">
-                        <i class="fa-solid fa-check-circle"></i> <?php echo $success_message; ?>
-                    </div>
+                    <div class="alert alert-success"><i class="fa-solid fa-check-circle"></i> <?php echo $success_message; ?></div>
                 <?php endif; ?>
-                
                 <?php if (isset($error_message)): ?>
-                    <div class="alert alert-error">
-                        <i class="fa-solid fa-exclamation-circle"></i> <?php echo $error_message; ?>
-                    </div>
+                    <div class="alert alert-error"><i class="fa-solid fa-exclamation-circle"></i> <?php echo $error_message; ?></div>
                 <?php endif; ?>
-                
+
                 <form class="section-form" method="POST" action="">
                     <div class="form-group">
                         <label>Section Name</label>
@@ -318,28 +258,16 @@ function getIconClass($icon_name) {
                             <option value="">Select Icon</option>
                             <?php foreach ($icon_list as $name => $class): ?>
                                 <option value="<?php echo $name; ?>">
-                                    <?php 
-                                        // Get emoji for icon
-                                        $emoji_map = [
-                                            'Meat' => '🥩',
-                                            'Fish' => '🐟',
-                                            'Vegetables' => '🥬',
-                                            'Fruits' => '🍎',
-                                            'Eggs' => '🥚',
-                                            'Poultry' => '🍗',
-                                            'Rice & Grains' => '🍚',
-                                            'Grocery' => '🛒',
-                                            'Bakery' => '🍞',
-                                            'Spices & Condiments' => '🧄',
-                                            'Seafood' => '🦐',
-                                            'Dry Goods' => '🥜',
-                                            'Cooked Foods' => '🍽️',
-                                            'Beverages' => '☕',
-                                            'Household Supplies' => '🧼'
-                                        ];
-                                        $emoji = $emoji_map[$name] ?? '';
+                                    <?php
+                                    $emoji_map = [
+                                        'Meat' => '🥩', 'Fish' => '🐟', 'Vegetables' => '🥬', 'Fruits' => '🍎',
+                                        'Eggs' => '🥚', 'Poultry' => '🍗', 'Rice & Grains' => '🍚',
+                                        'Grocery' => '🛒', 'Bakery' => '🍞', 'Spices & Condiments' => '🧄',
+                                        'Seafood' => '🦐', 'Dry Goods' => '🥜', 'Cooked Foods' => '🍽️',
+                                        'Beverages' => '☕', 'Household Supplies' => '🧼'
+                                    ];
+                                    echo ($emoji_map[$name] ?? '') . ' ' . $name;
                                     ?>
-                                    <?php echo $emoji; ?> <?php echo $name; ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -367,7 +295,7 @@ function getIconClass($icon_name) {
                         <i class="fa-solid fa-info-circle"></i> Stall number auto-generated
                     </span>
                 </div>
-                
+
                 <form class="section-form" method="POST" action="">
                     <div class="form-group">
                         <label>Section</label>
@@ -383,20 +311,14 @@ function getIconClass($icon_name) {
                                     while ($row = mysqli_fetch_assoc($existing_query)) {
                                         $existing_numbers[] = $row['stall_number'];
                                     }
-                                    
                                     $prefix = 'S' . $sec['id'];
                                     $next_num = 1;
                                     $next_number = '';
-                                    
                                     while (true) {
                                         $test = $prefix . '-' . str_pad($next_num, 3, '0', STR_PAD_LEFT);
-                                        if (!in_array($test, $existing_numbers)) {
-                                            $next_number = $test;
-                                            break;
-                                        }
+                                        if (!in_array($test, $existing_numbers)) { $next_number = $test; break; }
                                         $next_num++;
                                     }
-                                    
                                     echo '<option value="' . $sec['id'] . '">' . htmlspecialchars($sec['section_name']) . ' (Next: ' . $next_number . ')</option>';
                                 }
                             }
@@ -417,7 +339,7 @@ function getIconClass($icon_name) {
                 <div class="stalls-header">
                     <h2><i class="fa-solid fa-store"></i> Current Stalls</h2>
                     <span class="order-info">
-                        <i class="fa-solid fa-arrow-up-wide-short"></i> 
+                        <i class="fa-solid fa-arrow-up-wide-short"></i>
                         Sorted by <strong>Display Order</strong> (lower numbers first)
                     </span>
                 </div>
@@ -425,14 +347,10 @@ function getIconClass($icon_name) {
                 <?php
                 $table_check = mysqli_query($conn, "SHOW TABLES LIKE 'sections'");
                 if (!$table_check || mysqli_num_rows($table_check) == 0) {
-                    echo '<div class="no-sections">
-                            <i class="fa-solid fa-database"></i>
-                            <p>Please create the sections table first. Run the SQL script.</p>
-                          </div>';
+                    echo '<div class="no-sections"><i class="fa-solid fa-database"></i><p>Please create the sections table first. Run the SQL script.</p></div>';
                 } else {
                     $sections_query = "SELECT * FROM sections ORDER BY display_order ASC";
                     $sections_result = mysqli_query($conn, $sections_query);
-                    
                     if ($sections_result && mysqli_num_rows($sections_result) > 0) {
                         while ($section = mysqli_fetch_assoc($sections_result)) {
                             $section_id = $section['id'];
@@ -442,22 +360,19 @@ function getIconClass($icon_name) {
                                 SUM(CASE WHEN status = 'Vacant' THEN 1 ELSE 0 END) as available
                                 FROM stalls WHERE section_id = '$section_id'";
                             $count_result = mysqli_query($conn, $count_query);
-                            
                             if ($count_result && mysqli_num_rows($count_result) > 0) {
                                 $counts = mysqli_fetch_assoc($count_result);
                                 $total = $counts['total'] ?? 0;
                                 $occupied = $counts['occupied'] ?? 0;
                                 $available = $counts['available'] ?? 0;
                             } else {
-                                $total = 0;
-                                $occupied = 0;
-                                $available = 0;
+                                $total = 0; $occupied = 0; $available = 0;
                             }
-                            
+
                             $icon_name = $section['icon_class'] ?? 'Store';
                             $icon_class = getIconClass($icon_name);
                             ?>
-                            
+
                             <div class="stall-section">
                                 <div class="stall-section-header">
                                     <div class="section-info">
@@ -475,7 +390,10 @@ function getIconClass($icon_name) {
                                         <button class="btn-icon" title="Move Down" onclick="moveSection(<?php echo $section['id']; ?>, 'down')">
                                             <i class="fa-solid fa-arrow-down"></i>
                                         </button>
-                                        <button class="btn-icon delete" title="Delete Section" onclick="deleteSection(<?php echo $section['id']; ?>)">
+                                        <button class="btn-icon delete" title="Delete Section"
+                                                data-section-id="<?php echo $section['id']; ?>"
+                                                data-section-name="<?php echo htmlspecialchars($section['section_name']); ?>"
+                                                data-section-stalls="<?php echo $total; ?>">
                                             <i class="fa-solid fa-trash"></i>
                                         </button>
                                     </div>
@@ -485,7 +403,6 @@ function getIconClass($icon_name) {
                                     <?php
                                     $stalls_query = "SELECT * FROM stalls WHERE section_id = '$section_id' ORDER BY stall_number ASC";
                                     $stalls_result = mysqli_query($conn, $stalls_query);
-                                    
                                     if ($stalls_result && mysqli_num_rows($stalls_result) > 0) {
                                         while ($stall = mysqli_fetch_assoc($stalls_result)) {
                                             $status_class = strtolower($stall['status'] ?? 'vacant');
@@ -493,7 +410,6 @@ function getIconClass($icon_name) {
                                             ?>
                                             <div class="stall-card <?php echo $status_class; ?>" data-stall="<?php echo htmlspecialchars($stall['stall_number']); ?>">
                                                 <div class="stall-code"><?php echo htmlspecialchars($stall['stall_number']); ?></div>
-                                                
                                                 <div class="stall-status <?php echo $status_class; ?>">
                                                     <?php if ($stall['status'] == 'Occupied'): ?>
                                                         <i class="fa-solid fa-circle-check"></i> Occupied
@@ -501,22 +417,24 @@ function getIconClass($icon_name) {
                                                         <i class="fa-solid fa-circle"></i> Available
                                                     <?php endif; ?>
                                                 </div>
-                                                
                                                 <div class="stall-tenant <?php echo $has_tenant ? '' : 'empty'; ?>">
                                                     <i class="fa-solid <?php echo $has_tenant ? 'fa-user' : 'fa-user-slash'; ?>"></i>
                                                     <?php echo $has_tenant ? htmlspecialchars($stall['tenant_name']) : 'No Tenant Assigned'; ?>
                                                 </div>
-                                                
                                                 <div class="stall-rent">
                                                     <i class="fa-solid fa-peso-sign"></i>
                                                     <?php echo number_format($stall['monthly_rent'] ?? 0, 2); ?>/month
                                                 </div>
-                                                
                                                 <div class="stall-actions">
-                                                    <button class="btn-edit" onclick="editStall(<?php echo $stall['id']; ?>, <?php echo htmlspecialchars(json_encode($stall['monthly_rent'])); ?>)">
+                                                    <button class="btn-edit"
+                                                            data-stall-id="<?php echo $stall['id']; ?>"
+                                                            data-stall-number="<?php echo htmlspecialchars($stall['stall_number']); ?>"
+                                                            data-stall-rent="<?php echo htmlspecialchars($stall['monthly_rent']); ?>">
                                                         <i class="fa-solid fa-pen"></i> Edit Rent
                                                     </button>
-                                                    <button class="btn-delete" onclick="deleteStall(<?php echo $stall['id']; ?>)">
+                                                    <button class="btn-delete"
+                                                            data-stall-id="<?php echo $stall['id']; ?>"
+                                                            data-stall-number="<?php echo htmlspecialchars($stall['stall_number']); ?>">
                                                         <i class="fa-solid fa-trash"></i> Delete
                                                     </button>
                                                 </div>
@@ -532,12 +450,7 @@ function getIconClass($icon_name) {
                             <?php
                         }
                     } else {
-                        ?>
-                        <div class="no-sections">
-                            <i class="fa-solid fa-store"></i>
-                            <p>No sections found. Add your first section above.</p>
-                        </div>
-                        <?php
+                        echo '<div class="no-sections"><i class="fa-solid fa-store"></i><p>No sections found. Add your first section above.</p></div>';
                     }
                 }
                 ?>
@@ -546,204 +459,214 @@ function getIconClass($icon_name) {
         </div>
     </div>
 
-    <style>
-        .alert {
-            padding: 12px 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-weight: 500;
-        }
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .alert i {
-            margin-right: 8px;
-        }
-        
-        .stall-actions {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
+    <!-- ===== Custom Confirm Modal (Delete) ===== -->
+    <div class="confirm-modal-backdrop" id="confirmModal">
+        <div class="confirm-modal" role="dialog" aria-modal="true">
+            <div class="confirm-modal-icon" id="confirmIcon">
+                <i class="fa-solid fa-trash"></i>
+            </div>
+            <h3 id="confirmTitle">Delete?</h3>
+            <p id="confirmMessage">This action cannot be undone.</p>
+            <div class="confirm-modal-details" id="confirmDetails"></div>
+            <div class="confirm-modal-actions">
+                <button type="button" class="btn-cancel" id="confirmCancel">Cancel</button>
+                <button type="button" class="btn-confirm-delete" id="confirmOk">
+                    <i class="fa-solid fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
 
-        .stall-actions button {
-            border: none;
-            border-radius: 6px;
-            padding: 8px 10px;
-            cursor: pointer;
-            font: 500 12px 'Poppins', sans-serif;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .btn-edit {
-            background: #e3f2fd;
-            color: #1565c0;
-        }
-
-        .btn-edit:hover {
-            background: #bbdefb;
-        }
-        
-        select {
-            cursor: pointer;
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e1e5ea;
-            border-radius: 8px;
-            font-size: 14px;
-            font-family: 'Poppins', sans-serif;
-            background: white;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        
-        select:focus {
-            border-color: #2d6a9f;
-        }
-        
-        select option {
-            padding: 8px 12px;
-        }
-        
-        .badge.order {
-            background: #f3e5f5;
-            color: #7b1fa2;
-        }
-        
-        .section-info .badge {
-            font-size: 11px;
-            padding: 3px 10px;
-        }
-        
-        .section-form .form-group small {
-            font-size: 11px;
-            color: #7a8a9e;
-            display: block;
-            margin-top: 4px;
-        }
-        
-        .section-form .form-group small i {
-            margin-right: 4px;
-        }
-        
-        .btn-icon {
-            width: 36px;
-            height: 36px;
-            border: none;
-            border-radius: 8px;
-            background: #f5f7fb;
-            color: #7a8a9e;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-        }
-        
-        .btn-icon:hover {
-            background: #e1e5ea;
-            color: #1a2332;
-        }
-        
-        .btn-icon.delete:hover {
-            background: #fce4ec;
-            color: #c62828;
-        }
-        
-        .btn-icon:hover .fa-arrow-up {
-            color: #2e7d32;
-        }
-        
-        .btn-icon:hover .fa-arrow-down {
-            color: #e65100;
-        }
-        
-        .stalls-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 25px;
-        }
-        
-        .stalls-header .order-info {
-            color: #7a8a9e;
-            font-size: 13px;
-        }
-        
-        .stalls-header .order-info i {
-            color: #2d6a9f;
-            margin-right: 4px;
-        }
-    </style>
+    <!-- ===== Custom Edit Rent Modal ===== -->
+    <div class="confirm-modal-backdrop" id="editRentModal">
+        <div class="confirm-modal" role="dialog" aria-modal="true">
+            <div class="confirm-modal-icon edit-icon">
+                <i class="fa-solid fa-pen"></i>
+            </div>
+            <h3 id="editRentTitle">Edit Monthly Rent</h3>
+            <p id="editRentMessage">Enter the new monthly rent for this stall.</p>
+            <div class="confirm-modal-details" id="editRentDetails"></div>
+            <div class="form-group-modal">
+                <label for="editRentInput">Monthly Rent (₱)</label>
+                <input type="number" id="editRentInput" step="0.01" min="0.01" placeholder="2000.00">
+            </div>
+            <div class="confirm-modal-actions">
+                <button type="button" class="btn-cancel" id="editRentCancel">Cancel</button>
+                <button type="button" class="btn-confirm-save" id="editRentSave">
+                    <i class="fa-solid fa-check"></i> Save Rent
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script>
+        // ===== Search =====
         document.getElementById('searchStall').addEventListener('keyup', function() {
             let searchValue = this.value.toLowerCase();
-            let stallCards = document.querySelectorAll('.stall-card');
-            
-            stallCards.forEach(function(card) {
+            document.querySelectorAll('.stall-card').forEach(function(card) {
                 let stallNumber = card.getAttribute('data-stall')?.toLowerCase() || '';
                 let tenantName = card.querySelector('.stall-tenant')?.textContent?.toLowerCase() || '';
-                
-                if (stallNumber.includes(searchValue) || tenantName.includes(searchValue)) {
-                    card.style.display = '';
-                } else {
-                    card.style.display = 'none';
-                }
+                card.style.display = (stallNumber.includes(searchValue) || tenantName.includes(searchValue)) ? '' : 'none';
             });
         });
 
-        function deleteSection(id) {
-            if (confirm('Are you sure you want to delete this section and all its stalls?')) {
-                window.location.href = '?delete_section=' + id;
+        // ===== Confirm Modal (Delete Section / Delete Stall) =====
+        (function () {
+            const modal = document.getElementById('confirmModal');
+            const iconEl = document.getElementById('confirmIcon');
+            const titleEl = document.getElementById('confirmTitle');
+            const msgEl = document.getElementById('confirmMessage');
+            const detailsEl = document.getElementById('confirmDetails');
+            const okBtn = document.getElementById('confirmOk');
+            const cancelBtn = document.getElementById('confirmCancel');
+            let pendingUrl = null;
+
+            function openModal(config) {
+                titleEl.textContent = config.title;
+                msgEl.textContent = config.message;
+                detailsEl.innerHTML = config.details || '';
+                detailsEl.style.display = config.details ? 'block' : 'none';
+                iconEl.innerHTML = '<i class="fa-solid ' + (config.icon || 'fa-trash') + '"></i>';
+                okBtn.innerHTML = '<i class="fa-solid ' + (config.icon || 'fa-trash') + '"></i> ' + (config.confirmText || 'Delete');
+                pendingUrl = config.url;
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
             }
-        }
 
-        function deleteStall(id) {
-            if (confirm('Are you sure you want to delete this stall?')) {
-                window.location.href = '?delete_stall=' + id;
-            }
-        }
-
-        function editStall(id, currentRent) {
-            const newRent = prompt('Enter the correct monthly rent:', Number(currentRent).toFixed(2));
-            if (newRent === null) {
-                return;
+            function closeModal() {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+                pendingUrl = null;
             }
 
-            const rent = Number(newRent);
-            if (!Number.isFinite(rent) || rent <= 0) {
-                alert('Please enter a valid monthly rent greater than zero.');
-                return;
+            okBtn.addEventListener('click', function () {
+                if (pendingUrl) window.location.href = pendingUrl;
+            });
+            cancelBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) closeModal();
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
+            });
+
+            // Delete Section
+            document.querySelectorAll('.btn-icon.delete').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const id = this.dataset.sectionId;
+                    const name = this.dataset.sectionName;
+                    const stalls = this.dataset.sectionStalls;
+                    openModal({
+                        title: 'Delete this section?',
+                        message: 'This will permanently remove the section and ALL of its stalls. This action cannot be undone.',
+                        details:
+                            '<div><strong>Section:</strong> ' + name + '</div>' +
+                            '<div><strong>Stalls affected:</strong> ' + stalls + '</div>' +
+                            '<div style="color:#b91c1c; font-weight:500; margin-top:8px;">' +
+                            '<i class="fa-solid fa-triangle-exclamation"></i> ' +
+                            'Every stall under this section will be deleted too.' +
+                            '</div>',
+                        icon: 'fa-trash',
+                        confirmText: 'Delete Section',
+                        url: '?delete_section=' + id
+                    });
+                });
+            });
+
+            // Delete Stall
+            document.querySelectorAll('.stall-actions .btn-delete').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const id = this.dataset.stallId;
+                    const number = this.dataset.stallNumber;
+                    openModal({
+                        title: 'Delete this stall?',
+                        message: 'This will permanently remove the stall and any related payment records.',
+                        details:
+                            '<div><strong>Stall:</strong> ' + number + '</div>' +
+                            '<div style="color:#b91c1c; font-weight:500; margin-top:8px;">' +
+                            '<i class="fa-solid fa-triangle-exclamation"></i> ' +
+                            'This cannot be undone.' +
+                            '</div>',
+                        icon: 'fa-trash',
+                        confirmText: 'Delete Stall',
+                        url: '?delete_stall=' + id
+                    });
+                });
+            });
+        })();
+
+        // ===== Edit Rent Modal =====
+        (function () {
+            const modal = document.getElementById('editRentModal');
+            const detailsEl = document.getElementById('editRentDetails');
+            const inputEl = document.getElementById('editRentInput');
+            const saveBtn = document.getElementById('editRentSave');
+            const cancelBtn = document.getElementById('editRentCancel');
+            let pendingStallId = null;
+
+            function openModal(stallId, stallNumber, currentRent) {
+                pendingStallId = stallId;
+                detailsEl.innerHTML = '<div><strong>Stall:</strong> ' + stallNumber + '</div>';
+                inputEl.value = Number(currentRent).toFixed(2);
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                setTimeout(function () { inputEl.focus(); inputEl.select(); }, 100);
             }
 
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = 'manage-stalls.php';
-            form.innerHTML = '<input type="hidden" name="stall_id" value="' + id + '">' +
-                '<input type="hidden" name="monthly_rent" value="' + rent.toFixed(2) + '">' +
-                '<input type="hidden" name="edit_stall" value="1">';
-            document.body.appendChild(form);
-            form.submit();
-        }
+            function closeModal() {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+                pendingStallId = null;
+            }
 
+            document.querySelectorAll('.stall-actions .btn-edit').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    openModal(
+                        this.dataset.stallId,
+                        this.dataset.stallNumber,
+                        this.dataset.stallRent
+                    );
+                });
+            });
+
+            saveBtn.addEventListener('click', function () {
+                const rent = Number(inputEl.value);
+                if (!Number.isFinite(rent) || rent <= 0) {
+                    inputEl.focus();
+                    inputEl.style.borderColor = '#dc2626';
+                    return;
+                }
+                inputEl.style.borderColor = '';
+
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = 'manage-stalls.php';
+                form.innerHTML =
+                    '<input type="hidden" name="stall_id" value="' + pendingStallId + '">' +
+                    '<input type="hidden" name="monthly_rent" value="' + rent.toFixed(2) + '">' +
+                    '<input type="hidden" name="edit_stall" value="1">';
+                document.body.appendChild(form);
+                form.submit();
+            });
+
+            cancelBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) closeModal();
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
+            });
+            inputEl.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') saveBtn.click();
+            });
+        })();
+
+        // ===== Move Section =====
         function moveSection(id, direction) {
             window.location.href = '?move_section=' + id + '&direction=' + direction;
         }
 
+        // ===== Export =====
         function exportData() {
             window.location.href = '?export=true';
         }

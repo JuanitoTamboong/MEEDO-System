@@ -2,11 +2,9 @@
 $activePage = 'stall_monitoring';
 include 'includes/database.php';
 
-// Enable error reporting for debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Get stall number from URL
 $stallNumber = isset($_GET['stall']) ? mysqli_real_escape_string($conn, $_GET['stall']) : '';
 
 if (empty($stallNumber)) {
@@ -14,14 +12,12 @@ if (empty($stallNumber)) {
     exit;
 }
 
-// Get stall details
 $stall = null;
 $tenant = null;
 $payments = [];
 $paymentHistory = [];
 
 try {
-    // Get stall information
     $query = "SELECT 
                 s.*,
                 sec.section_name,
@@ -42,7 +38,6 @@ if (!$stall) {
     exit;
 }
 
-// Get tenant information if stall is occupied
 if ($stall['status'] == 'Occupied') {
     try {
         $query = "SELECT * FROM tenants WHERE stall_id = " . $stall['id'] . " AND status = 'active' ORDER BY created_at DESC LIMIT 1";
@@ -55,7 +50,6 @@ if ($stall['status'] == 'Occupied') {
     }
 }
 
-// Get payment history (if payments table exists)
 try {
     $table_check = mysqli_query($conn, "SHOW TABLES LIKE 'payments'");
     if ($table_check && mysqli_num_rows($table_check) > 0) {
@@ -71,12 +65,11 @@ try {
     $paymentHistory = [];
 }
 
-// Get current month payment status
 $currentPayment = null;
 try {
     $table_check = mysqli_query($conn, "SHOW TABLES LIKE 'payments'");
     if ($table_check && mysqli_num_rows($table_check) > 0) {
-$query = "SELECT * FROM payments WHERE stall_id = " . $stall['id'] . " 
+        $query = "SELECT * FROM payments WHERE stall_id = " . $stall['id'] . " 
                   AND MONTH(month_covered) = MONTH(CURDATE()) 
                   AND YEAR(month_covered) = YEAR(CURDATE()) 
                   ORDER BY CASE WHEN status = 'Paid' THEN 0 ELSE 1 END 
@@ -206,7 +199,7 @@ $query = "SELECT * FROM payments WHERE stall_id = " . $stall['id'] . "
                 <div class="detail-card payment-card">
                     <div class="card-header">
                         <h3><i class="fa-solid fa-credit-card"></i> Payment Status</h3>
-<?php
+                        <?php
                         $paymentStatus = $currentPayment['status'] ?? 'Unpaid';
                         $statusClass = strtolower($paymentStatus) === 'overdue' ? 'overdue' : (strtolower($paymentStatus) === 'paid' ? 'paid' : 'unpaid');
                         $statusIcon = strtolower($paymentStatus) === 'overdue' ? 'fa-exclamation-triangle' : (strtolower($paymentStatus) === 'paid' ? 'fa-check-circle' : 'fa-exclamation-circle');
@@ -221,7 +214,7 @@ $query = "SELECT * FROM payments WHERE stall_id = " . $stall['id'] . "
                             <span class="label">Due Date</span>
                             <span class="value">Every 1st of the month</span>
                         </div>
-<div class="detail-item">
+                        <div class="detail-item">
                             <span class="label">Current Month</span>
                             <span class="value"><?php echo date("F Y"); ?></span>
                         </div>
@@ -341,7 +334,7 @@ $query = "SELECT * FROM payments WHERE stall_id = " . $stall['id'] . "
             <!-- Actions -->
             <div class="action-bar">
                 <?php if ($stall['status'] == 'Vacant'): ?>
-                    <button class="btn-primary" onclick="assignTenant('<?php echo $stall['stall_number']; ?>')">
+                    <button class="btn-primary" onclick="assignTenant('<?php echo htmlspecialchars($stall['stall_number']); ?>')">
                         <i class="fa-solid fa-user-plus"></i> Assign Tenant
                     </button>
                 <?php else: ?>
@@ -353,12 +346,30 @@ $query = "SELECT * FROM payments WHERE stall_id = " . $stall['id'] . "
                         <i class="fa-solid fa-pen"></i> Edit Tenant
                     </button>
 
-                    <button class="btn-danger" onclick="vacateStall('<?php echo $stall['stall_number']; ?>')">
+                    <button class="btn-danger" id="vacateBtn" data-stall="<?php echo htmlspecialchars($stall['stall_number']); ?>" data-tenant="<?php echo htmlspecialchars($tenant['full_name'] ?? 'Unknown'); ?>">
                         <i class="fa-solid fa-user-slash"></i> Vacate Stall
                     </button>
                 <?php endif; ?>
             </div>
 
+        </div>
+    </div>
+
+    <!-- ===== Custom Vacate Modal ===== -->
+    <div class="confirm-modal-backdrop" id="vacateModal">
+        <div class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="vacateTitle">
+            <div class="confirm-modal-icon">
+                <i class="fa-solid fa-user-slash"></i>
+            </div>
+            <h3 id="vacateTitle">Vacate this stall?</h3>
+            <p>This will remove the current tenant from the stall. Rent history will be preserved.</p>
+            <div class="confirm-modal-details" id="vacateDetails"></div>
+            <div class="confirm-modal-actions">
+                <button type="button" class="btn-cancel" id="vacateCancel">Cancel</button>
+                <button type="button" class="btn-confirm-delete" id="vacateConfirm">
+                    <i class="fa-solid fa-user-slash"></i> Vacate
+                </button>
+            </div>
         </div>
     </div>
 
@@ -375,12 +386,60 @@ $query = "SELECT * FROM payments WHERE stall_id = " . $stall['id'] . "
             }
         }
 
+        // ===== Custom Vacate Modal =====
+        (function () {
+            const modal = document.getElementById('vacateModal');
+            const detailsEl = document.getElementById('vacateDetails');
+            const confirmBtn = document.getElementById('vacateConfirm');
+            const cancelBtn = document.getElementById('vacateCancel');
+            const vacateBtn = document.getElementById('vacateBtn');
+            let pendingUrl = null;
 
-        function vacateStall(stallNumber) {
-            if (confirm('Are you sure you want to vacate this stall? This will remove the current tenant.')) {
-                window.location.href = 'vacate-stall.php?stall=' + stallNumber;
+            function openModal(url, stallNumber, tenantName) {
+                pendingUrl = url;
+                detailsEl.innerHTML =
+                    '<div><strong>Stall:</strong> ' + stallNumber + '</div>' +
+                    '<div><strong>Tenant:</strong> ' + tenantName + '</div>' +
+                    '<div style="color:#b91c1c; font-weight:500; margin-top:8px;">' +
+                    '<i class="fa-solid fa-triangle-exclamation"></i> ' +
+                    'The tenant will be removed and the stall marked as Vacant.' +
+                    '</div>';
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
             }
-        }
+
+            function closeModal() {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+                pendingUrl = null;
+            }
+
+            if (vacateBtn) {
+                vacateBtn.addEventListener('click', function () {
+                    const stallNumber = this.dataset.stall;
+                    const tenantName = this.dataset.tenant;
+                    openModal(
+                        'vacate-stall.php?stall=' + encodeURIComponent(stallNumber),
+                        stallNumber,
+                        tenantName
+                    );
+                });
+            }
+
+            confirmBtn.addEventListener('click', function () {
+                if (pendingUrl) {
+                    window.location.href = pendingUrl;
+                }
+            });
+
+            cancelBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) closeModal();
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
+            });
+        })();
     </script>
 
 </body>
