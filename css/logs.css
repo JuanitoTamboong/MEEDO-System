@@ -1,32 +1,83 @@
+/* ============================================
+   Activity Logs - MEEDO System
+   ============================================ */
 
+/* ===== Header ===== */
 .logs-header { margin-bottom: 24px; }
-.logs-header h1 { color: #1a2332; font-size: 28px; display: flex; align-items: center; gap: 12px; }
+.logs-header h1 {
+    color: #1a2332;
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 .logs-header h1 i { color: #2563eb; }
 .logs-header p { color: #64748b; font-size: 14px; margin-top: 4px; }
 
-.logs-panel { background: #fff; border: 1px solid #e5eaf0; border-radius: 12px; overflow: hidden; }
+/* ===== Panel ===== */
+.logs-panel {
+    background: #fff;
+    border: 1px solid #e5eaf0;
+    border-radius: 12px;
+    overflow: hidden;
+}
 
-.logs-filters { display: flex; gap: 10px; padding: 16px; border-bottom: 1px solid #e5eaf0; background: #f8fafc; }
+/* ===== Filters ===== */
+.logs-filters {
+    display: flex;
+    gap: 10px;
+    padding: 16px;
+    border-bottom: 1px solid #e5eaf0;
+    background: #f8fafc;
+}
 .logs-filters input,
 .logs-filters select,
-.logs-filters button { border: 1px solid #dbe3ec; border-radius: 8px; padding: 9px 12px; font: 400 13px 'Poppins', sans-serif; }
+.logs-filters button {
+    border: 1px solid #dbe3ec;
+    border-radius: 8px;
+    padding: 9px 12px;
+    font: 400 13px 'Poppins', sans-serif;
+}
 .logs-filters input { min-width: 220px; }
 .logs-filters button { background: #1a2332; color: #fff; cursor: pointer; }
 
+/* ===== Table ===== */
 .logs-table { width: 100%; border-collapse: collapse; }
-.logs-table th { color: #64748b; font-size: 11px; text-align: left; text-transform: uppercase; padding: 13px 16px; border-bottom: 1px solid #e5eaf0; }
-.logs-table td { color: #334155; font-size: 13px; padding: 14px 16px; border-bottom: 1px solid #eef2f6; vertical-align: top; }
+.logs-table th {
+    color: #64748b;
+    font-size: 11px;
+    text-align: left;
+    text-transform: uppercase;
+    padding: 13px 16px;
+    border-bottom: 1px solid #e5eaf0;
+}
+.logs-table td {
+    color: #334155;
+    font-size: 13px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #eef2f6;
+    vertical-align: top;
+}
 .logs-table tr:last-child td { border-bottom: 0; }
 .logs-table .user { color: #0f172a; font-weight: 600; }
 .logs-table small { display: block; color: #94a3b8; margin-top: 3px; }
 
+/* ===== Badges ===== */
 .role-badge,
-.action-badge { display: inline-block; padding: 4px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.action-badge {
+    display: inline-block;
+    padding: 4px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
 .role-badge.administrator { color: #1d4ed8; background: #eff6ff; }
 .role-badge.treasury { color: #047857; background: #ecfdf5; }
 .role-badge.meedo.personnel { color: #6d28d9; background: #f5f3ff; }
 .action-badge { color: #475569; background: #f1f5f9; }
 
+/* ===== Empty ===== */
 .logs-empty { padding: 50px 20px; text-align: center; color: #94a3b8; }
 .logs-empty i { font-size: 38px; margin-bottom: 10px; color: #cbd5e1; }
 

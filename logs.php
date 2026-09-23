@@ -31,11 +31,25 @@ if ($roleFilter !== 'all') {
     $types .= 's';
     $values[] = $roleFilter;
 }
+
+// ✅ Search across multiple columns
 if ($actionFilter !== '') {
-    $query .= ' AND action LIKE ?';
-    $types .= 's';
-    $values[] = '%' . $actionFilter . '%';
+    $query .= ' AND (
+        action LIKE ?
+        OR description LIKE ?
+        OR username LIKE ?
+        OR entity_type LIKE ?
+        OR role LIKE ?
+    )';
+    $types .= 'sssss';
+    $like = '%' . $actionFilter . '%';
+    $values[] = $like;
+    $values[] = $like;
+    $values[] = $like;
+    $values[] = $like;
+    $values[] = $like;
 }
+
 $query .= ' ORDER BY created_at DESC, id DESC LIMIT 250';
 $statement = mysqli_prepare($conn, $query);
 if ($statement) {
@@ -92,7 +106,7 @@ if ($statement) {
 
         <div class="logs-panel">
             <form class="logs-filters" method="GET">
-                <input type="search" name="action" value="<?php echo htmlspecialchars($actionFilter); ?>" placeholder="Search actions..." aria-label="Search actions">
+                <input type="search" name="action" value="<?php echo htmlspecialchars($actionFilter); ?>" placeholder="Search actions, users, details..." aria-label="Search logs">
                 <select name="role" aria-label="Filter by role">
                     <option value="all">All roles</option>
                     <?php foreach ($allowedRoles as $role): ?>
@@ -106,7 +120,6 @@ if ($statement) {
 
             <?php if ($canDelete && $logs): ?>
                 <div class="logs-actions">
-                    <!-- ✅ Points to delete-log.php (same file that handles single delete) -->
                     <a href="delete-log.php?action=clear_all"
                        class="btn-delete-all"
                        data-clear-all="true">
