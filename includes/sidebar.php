@@ -55,12 +55,14 @@ $userRole = $_SESSION['role'] ?? '';
             </a>
         </li>
 
-        <li class="<?= isset($activePage) && $activePage === 'contracts' ? 'active' : '' ?>">
-            <a href="contracts.php">
-                <i class="fa-solid fa-file-contract"></i>
-                Contracts
-            </a>
-        </li>
+        <?php if (in_array($userRole, ['Administrator', 'Meedo Personnel'], true)): ?>
+            <li class="<?= isset($activePage) && $activePage === 'contracts' ? 'active' : '' ?>">
+                <a href="contracts.php">
+                    <i class="fa-solid fa-file-contract"></i>
+                    Contracts
+                </a>
+            </li>
+        <?php endif; ?>
 
         <?php if (in_array($userRole, ['Administrator', 'Meedo Personnel', 'Treasury'], true)): ?>
             <li class="<?= isset($activePage) && $activePage === 'logs' ? 'active' : '' ?>">

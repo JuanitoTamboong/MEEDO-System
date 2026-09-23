@@ -1,0 +1,387 @@
+
+.contracts-header {
+    margin-bottom: 28px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+}
+.contracts-header h1 {
+    color: #1a2332;
+    font-size: 28px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.contracts-header h1 i { color: #2563eb; }
+.contracts-header p { color: #64748b; font-size: 14px; margin-top: 4px; }
+.contracts-header .badge-count {
+    background: #eef2f6;
+    padding: 6px 18px;
+    border-radius: 40px;
+    font-size: 14px;
+    color: #1a2332;
+    font-weight: 500;
+}
+.badge-count i { color: #2563eb; margin-right: 6px; }
+
+/* ===== Notices ===== */
+.notice {
+    padding: 14px 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.notice.success { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
+.notice.error { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
+
+/* ===== Contract list ===== */
+.contract-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.contract-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e9edf2;
+    padding: 20px 24px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+.contract-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    border-color: #cbd5e1;
+}
+
+/* Tenant info */
+.contract-card .tenant-info { min-width: 180px; flex: 2; }
+.contract-card .tenant-info .name {
+    font-weight: 600;
+    font-size: 16px;
+    color: #0b1a2e;
+}
+.contract-card .tenant-info .business {
+    font-size: 13px;
+    color: #64748b;
+    display: block;
+    margin-top: 2px;
+}
+.contract-card .tenant-info .stall {
+    font-size: 13px;
+    color: #475569;
+    margin-top: 4px;
+}
+.contract-card .tenant-info .stall i { color: #6b7280; width: 16px; }
+
+/* Financials */
+.contract-card .financials {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    flex: 3;
+    justify-content: center;
+}
+.contract-card .financials .amount-box { text-align: center; }
+.contract-card .financials .amount-box .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #94a3b8;
+    font-weight: 600;
+}
+.contract-card .financials .amount-box .value {
+    font-weight: 700;
+    font-size: 16px;
+    color: #0b1a2e;
+}
+.contract-card .financials .amount-box .value.paid { color: #16a34a; }
+.contract-card .financials .amount-box .value.remaining { color: #dc2626; }
+.contract-card .financials .amount-box .value.scheduled { color: #2563eb; }
+
+/* Date range */
+.contract-card .date-range {
+    text-align: center;
+    flex: 1.5;
+    min-width: 140px;
+}
+.contract-card .date-range .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #94a3b8;
+    font-weight: 600;
+}
+.contract-card .date-range .dates {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.contract-card .date-range .dates .arrow { color: #94a3b8; font-size: 12px; }
+
+/* Status badge */
+.contract-card .status-badge { flex: 0.8; min-width: 90px; text-align: center; }
+.contract-status {
+    display: inline-flex;
+    padding: 5px 14px;
+    border-radius: 40px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+.contract-status.active { background: #dcfce7; color: #15803d; }
+.contract-status.expired { background: #fee2e2; color: #b91c1c; }
+.contract-status.terminated { background: #f1f3f4; color: #6b7280; }
+
+/* Actions */
+.contract-card .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex: 2;
+    justify-content: flex-end;
+    min-width: 200px;
+}
+
+.actions .extend-form {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #f8fafc;
+    padding: 4px 8px 4px 12px;
+    border-radius: 40px;
+    border: 1px solid #e2e8f0;
+}
+.extend-form select {
+    border: 0;
+    background: transparent;
+    font-size: 12px;
+    font-weight: 500;
+    color: #1a2332;
+    padding: 4px 0;
+    outline: none;
+    cursor: pointer;
+}
+.extend-form button {
+    border: 0;
+    border-radius: 40px;
+    padding: 6px 14px;
+    background: #2563eb;
+    color: #fff;
+    font: 500 12px 'Poppins', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s;
+}
+.extend-form button:hover { background: #1d4ed8; }
+
+.actions .action-btn {
+    border: 0;
+    border-radius: 40px;
+    padding: 6px 14px;
+    font: 500 12px 'Poppins', sans-serif;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.15s;
+    border: 1px solid transparent;
+}
+.action-btn.pay-full { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+.action-btn.pay-full:hover { background: #d1fae5; }
+.action-btn.undo { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+.action-btn.undo:hover { background: #fef3c7; }
+.action-btn.edit-date { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
+.action-btn.edit-date:hover { background: #dbeafe; }
+
+.read-only { color: #94a3b8; font-size: 13px; font-weight: 500; }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 60px 20px; color: #94a3b8; }
+.empty-state i { font-size: 48px; color: #cbd5e1; margin-bottom: 12px; }
+.empty-state h3 { color: #475569; font-weight: 500; font-size: 18px; }
+
+/* Overview cards */
+.contract-overview {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+}
+.overview-card {
+    background: #fff;
+    border: 1px solid #e5eaf0;
+    border-radius: 12px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.overview-card .overview-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    color: #2563eb;
+    background: #eff6ff;
+}
+.overview-card.active .overview-icon { color: #15803d; background: #f0fdf4; }
+.overview-card.expired .overview-icon { color: #b91c1c; background: #fef2f2; }
+.overview-card.remaining .overview-icon { color: #b45309; background: #fffbeb; }
+.overview-card .overview-label {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+}
+.overview-card strong {
+    display: block;
+    color: #0f172a;
+    font-size: 19px;
+    line-height: 1.25;
+}
+
+/* Toolbar */
+.contract-toolbar {
+    background: #fff;
+    border: 1px solid #e5eaf0;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.contract-search {
+    flex: 1;
+    min-width: 220px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #94a3b8;
+    border: 1px solid #dbe3ec;
+    border-radius: 8px;
+    padding: 9px 12px;
+}
+.contract-search input,
+.contract-toolbar select {
+    border: 0;
+    outline: 0;
+    color: #1e293b;
+    background: transparent;
+    font: 400 13px 'Poppins', sans-serif;
+}
+.contract-search input { width: 100%; }
+.contract-toolbar select {
+    border: 1px solid #dbe3ec;
+    border-radius: 8px;
+    padding: 9px 12px;
+    min-width: 140px;
+    cursor: pointer;
+}
+.contract-count { color: #64748b; font-size: 12px; white-space: nowrap; }
+
+/* ===== Card grid layout ===== */
+.contract-card {
+    display: grid;
+    grid-template-columns: minmax(190px, 1.2fr) minmax(250px, 1.7fr) minmax(180px, 1fr) 100px;
+    grid-template-areas:
+        "tenant financials dates status"
+        "tenant financials actions actions";
+    gap: 18px 24px;
+    align-items: center;
+}
+.contract-card .tenant-info { grid-area: tenant; }
+.contract-card .financials { grid-area: financials; justify-content: flex-start; }
+.contract-card .date-range { grid-area: dates; }
+.contract-card .status-badge { grid-area: status; }
+.contract-card .actions {
+    grid-area: actions;
+    border-top: 1px solid #eef2f6;
+    padding-top: 14px;
+    min-width: 0;
+}
+.contract-card .status-badge { text-align: left; }
+.contract-card .status-badge::before {
+    content: 'STATUS';
+    display: block;
+    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .5px;
+    margin-bottom: 5px;
+}
+.contract-card .date-range { text-align: left; }
+.contract-card .date-range .dates { justify-content: flex-start; flex-wrap: wrap; }
+.contract-card .financials { gap: 18px; }
+.no-results { display: none; }
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+    .contract-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .contract-card {
+        display: flex;
+        align-items: stretch;
+        gap: 14px;
+        padding: 18px;
+    }
+    .contract-card .tenant-info,
+    .contract-card .financials,
+    .contract-card .date-range,
+    .contract-card .status-badge,
+    .contract-card .actions {
+        flex: 1 1 100%;
+        text-align: left;
+        min-width: unset;
+    }
+    .contract-card .financials { justify-content: flex-start; }
+    .contract-card .actions { justify-content: flex-start; }
+    .contract-card .date-range .dates { justify-content: flex-start; }
+    .contracts-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .contract-toolbar { align-items: stretch; flex-wrap: wrap; }
+    .contract-search { flex-basis: 100%; }
+}
+
+@media (max-width: 480px) {
+    .contract-overview { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .overview-card { padding: 12px; gap: 8px; }
+    .overview-card .overview-icon { width: 32px; height: 32px; }
+    .overview-card strong { font-size: 16px; }
+    .overview-card .overview-label { font-size: 9px; }
+    .contract-toolbar select { flex: 1; }
+    .actions .extend-form {
+        flex-wrap: wrap;
+        background: transparent;
+        border: 0;
+        padding: 0;
+        gap: 6px;
+    }
+    .extend-form select {
+        background: #f8fafc;
+        padding: 6px 12px;
+        border-radius: 40px;
+        border: 1px solid #e2e8f0;
+    }
+    .actions .action-btn { padding: 6px 12px; font-size: 11px; }
+}
