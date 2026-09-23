@@ -1,4 +1,8 @@
+/* ============================================
+   Contracts - MEEDO System
+   ============================================ */
 
+/* ===== Header ===== */
 .contracts-header {
     margin-bottom: 28px;
     display: flex;
@@ -36,6 +40,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    transition: opacity 0.4s ease, transform 0.4s ease; /* ✅ ADDED for auto-fade */
 }
 .notice.success { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
 .notice.error { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
@@ -333,6 +338,139 @@
 .contract-card .financials { gap: 18px; }
 .no-results { display: none; }
 
+/* ============================================
+   Custom Modals (Pay All / Undo / Edit Date)
+   ============================================ */
+.confirm-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(3px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeInBackdrop 0.2s ease;
+}
+.confirm-modal-backdrop.active { display: flex; }
+@keyframes fadeInBackdrop { from { opacity: 0; } to { opacity: 1; } }
+
+.confirm-modal {
+    background: #fff;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 440px;
+    padding: 26px 26px 22px;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+    transform: translateY(8px) scale(0.98);
+    animation: popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    font-family: 'Poppins', sans-serif;
+}
+@keyframes popIn { to { transform: translateY(0) scale(1); } }
+
+.confirm-modal-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #ecfdf5;
+    color: #059669;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-bottom: 14px;
+}
+.confirm-modal-icon.edit-icon {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.confirm-modal h3 {
+    color: #0f172a;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px;
+}
+.confirm-modal p {
+    color: #64748b;
+    font-size: 13.5px;
+    line-height: 1.55;
+    margin: 0 0 16px;
+}
+
+.confirm-modal-details {
+    background: #f8fafc;
+    border: 1px solid #e5eaf0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 18px;
+    font-size: 12.5px;
+    color: #475569;
+    line-height: 1.7;
+}
+.confirm-modal-details strong { color: #0f172a; font-weight: 600; }
+
+.form-group-modal { margin-bottom: 18px; }
+.form-group-modal label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.form-group-modal input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid #dbe3ec;
+    border-radius: 8px;
+    font: 400 15px 'Poppins', sans-serif;
+    color: #0f172a;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.15s;
+}
+.form-group-modal input:focus { border-color: #2563eb; }
+
+.confirm-modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+.confirm-modal-actions button {
+    border: 0;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font: 500 13px 'Poppins', sans-serif;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+}
+.confirm-modal-actions button:active { transform: scale(0.97); }
+
+.btn-cancel { background: #f1f5f9; color: #334155; }
+.btn-cancel:hover { background: #e2e8f0; }
+
+.btn-confirm-delete {
+    background: #dc2626;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.btn-confirm-delete:hover { background: #b91c1c; }
+
+.btn-confirm-save {
+    background: #059669;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.btn-confirm-save:hover { background: #047857; }
+
+.confirm-modal-actions button i { font-size: 12px; }
+
 /* ===== Responsive ===== */
 @media (max-width: 900px) {
     .contract-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -384,4 +522,10 @@
         border: 1px solid #e2e8f0;
     }
     .actions .action-btn { padding: 6px 12px; font-size: 11px; }
+
+    /* Modal tweak for small screens */
+    .confirm-modal {
+        margin: 16px;
+        max-width: calc(100% - 32px);
+    }
 }
